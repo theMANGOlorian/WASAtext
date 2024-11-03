@@ -1,0 +1,497 @@
+openapi: 3.0.3
+info:
+  title: WasaText
+  description: |
+    Connect with your friends effortlessly using WASAText! Send and receive messages, whether one-on-one
+    or in groups, all from the convenience of your PC. Enjoy seamless conversations with text or GIFs and
+    easily stay in touch through your private chats or group discussion.
+  version: "0.1"
+servers:
+  - url: http://localhost:6969
+
+tags:
+  - name: "Login"
+    description: endpoints for loggin in action
+  - name: "User"
+    description: endpoints for users related operations
+  - name: "Conversations"
+    description: endpoints for conversations
+  - name: "Messages"
+    description: endpoints for messages
+
+paths:
+  /session:
+    post:
+      tags: 
+        - Login
+      summary: Logs in the user account
+      security: []
+      description: |
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: "#/components/schemas/UserName"
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    $ref: "#/components/schemas/Identifier"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          description: Login failed
+          headers:
+            X-Message:
+              description: Error message
+              schema: { type: string }
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+                    
+  /users/{userId}/setUsername:
+    put:
+      parameters:
+      - $ref: "#/components/parameters/userId"
+      tags:
+        - User
+      summary: change the username
+      description: |
+        used to update the userneme or setting it for the current user logged in
+      operationId: setMyUserName
+      requestBody:
+        description: a username to be set
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserName"
+      responses:
+        "201":
+          description: username set succesfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    $ref: "#/components/schemas/UserName"
+        "202":
+          description: username already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    $ref: "#/components/schemas/UserName"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+          
+  /users/{userId}/setUserphoto:
+    put:
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      tags:
+        - User
+      summary: change the photo profile
+      description: used to set the photo for the current user logged in
+      operationId: setMyPhoto
+      requestBody:
+        description: a photo to be set
+        required: true
+        content:
+          image/*:
+            schema:
+              $ref: "#/components/schemas/PhotoFile"
+      responses:
+        "200":
+          description: photo change successfully
+          content:
+            image/*:
+              schema:
+                type: object
+                format: binary
+                properties:
+                  photo:
+                    $ref: "#/components/schemas/PhotoFile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  /users/{userId}/conversations:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      tags:
+        - Conversations
+      summary: get the list of conversations of a specific user
+      description: | 
+        used to get the list of conversations, sorted in reverse
+        chronological order, for the current user
+        logged in using userId
+      operationId: getMyConversations
+      responses:
+        "200":
+          description: List of conversations returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationInfo"
+                    
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+          
+  /conversations/{conversationId}/messages:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      tags:
+        - Messages
+      summary: list messages of a conversation
+      description: | 
+        open a conversation to view all exchanged messages, displayed in reverse chronological order. 
+        Each message includes the timestamp, the content (whether text or
+        photo), and the sender’s username for received messages, or one/two 
+        checkmarks to indicate the status of sent messages. 
+      operationId: getConversation
+      responses:
+        "200":
+          description: list of messages retured successfully
+          content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MessageDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      parameters: 
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/userId"
+      tags:
+        - Messages
+      summary: send a message
+      description: | 
+        used to send messsage to a specific conversation
+      operationId: sendMessage
+      requestBody:
+        description: a message to be send
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMessage"
+      responses:
+        "200":
+          description: message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  /conversations/{conversationId}/messages/{messageId}/forward:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      tags:
+        - Messages
+      summary: forward a message
+      description: forward a message to an another conversation
+      operationId: forwardMessage
+      requestBody:
+        description: The name of the conversation to which the message should be forwarded
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target:
+                  oneOf:
+                    - $ref: "#/components/schemas/UserName"
+                    - $ref: "#/components/schemas/GroupName"
+      responses:
+        "201":
+          description: message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForwardMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /conversations/{conversationId}/messages/{messageId}:
+    delete:
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+        - $ref: "#/components/parameters/messageId"
+      tags: 
+        - Messages
+      summary: delete a message
+      description: |
+        delete a message froma a conversation
+      responses:
+        "204":
+          description: message deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      
+  
+# defined COMPONENTS
+components:
+
+  responses:
+    #400 class responses
+    #400
+    BadRequest:
+      description: syntax of the request was not compliant with docs, check parameters
+    #403
+    Forbidden:
+      description: server will not accept request due to lacking of client permissions
+    #404
+    NotFound:
+      description: resource not found
+
+    #500 class responses
+    #500
+    InternalServerError:
+      description: the server encountered an error while processing the request
+
+  parameters:
+    userId:
+      description: identifier for a single user
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      name: userId
+      in: path
+      required: true
+      
+    conversationId:
+      description: identifier for a single conversation
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      name: conversationId
+      in: path
+      required: true
+    
+    messageId:
+      description: identifier for a single conversation
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      name: messageId
+      in: path
+      required: true
+
+  schemas:
+    Identifier:
+      description: The unique resource ID as a string
+      type: string
+      example: "123e4567-e89b-12d3-a456-426614174000"
+      minLength: 36
+      maxLength: 36
+      readOnly: true
+      pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+
+    UserName:
+      title: username
+      description: user name associated with userId
+      type: string
+      example: "DeadpoolPrime69"
+      pattern: "^[a-z0-9]*?$"
+      minLength: 3
+      maxLength: 25
+    
+    GroupName:
+      title: GroupName
+      description: name associated with groupId
+      type: string
+      example: "Avengers"
+      pattern: "^[a-z0-9]*?$"
+      minLength: 3
+      maxLength: 25
+    
+    PhotoFile:
+      description: Photo file to upload, directly as a binary file.
+      # Schema indicated according to the official docs:
+      # https://swagger.io/docs/specification/data-models/data-types/#file
+      type: string
+      minLength: 1
+      maxLength: 20971520 # 20MB
+      format: binary
+    
+    Text:
+      description: body of the message
+      type: string
+      minLength: 1
+      maxLength: 1024
+      pattern: "^.*?$"
+      example: "I am the marvel jesus"
+    
+    NewMessage:
+      type: object
+      description: send a new message
+      properties:
+        senderId:
+          description: The unique ID of the message sender
+          type: string
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          minLength: 36
+          maxLength: 36
+          pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        messageBody:
+          type: string
+          minLength: 1
+          maxLength: 1024
+          example: "May the force be with you"
+        photo:
+          type: string
+          format: binary
+          minLength: 1
+          maxLength: 20971520 # 20MB
+        type:
+          type: string
+          enum: [text, photo]
+      required:
+        - type
+        
+    ForwardMessage:
+      type: object
+      description: Forward a message to another conversation
+      allOf:
+        - $ref: "#/components/schemas/NewMessage" # Eredita tutte le proprietà di NewMessage
+        - type: object
+          properties:
+            targetIdentifier:
+              oneOf:
+                - $ref: "#/components/schemas/UserName"
+                - $ref: "#/components/schemas/GroupName"
+          required:
+            - targetIdentifier
+  
+          
+    MessageDetail:
+      description: message information
+      type: object
+      properties:
+        messageId:
+          $ref: "#/components/schemas/Identifier"
+        senderId:
+          $ref: "#/components/schemas/Identifier"
+        username:
+          type: string
+          example: "Deadpool"
+        text:
+          $ref: "#/components/schemas/Text"
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [inviato, consegnato, letto]  # Esempio di stati
+        type:
+          type: string
+          enum: [testo, foto]  # Tipi di messaggio
+        reactions:
+          type: array
+          items:
+            type: object
+            properties:
+              emoji:
+                $ref: "#/components/schemas/Identifier"
+              userId:
+                $ref: "#/components/schemas/Identifier"
+    
+    ConversationInfo:
+      description: | 
+        list of conversations with other users or with groups, sorted in reverse
+        chronological order. Each element in the list must display the username of the other person or the
+        group name, the user profile photo or the group photo, the date and time of the latest message,
+        the preview (snippet) of the text message, or an icon for a photo message.
+      type: object
+      properties:
+        conversationId:
+          $ref: "#/components/schemas/Identifier"
+        conversationName:
+          type: string
+          description: "Username or group name"
+          example: "Deadpool"
+        photo:
+          type: string
+          format: binary
+        lastMessageDate:
+          type: string
+          description: "timestamp of massage"
+          format: date-time
+          example: "2024-12-23T09:00:00Z"
+        lastMessagePreview:
+          type: string
+          description: "Snippet for the last massage sent or an icon for images"
+          example: "It's over Anakin, i've the highground"
+        
+  securitySchemes:
+    UserIdAuth:
+      description: |
+        User authentication with the user ID passed
+        as it would be an authentication token.
+        Of course, that's extremely insecure, but it's done
+        according to the project specification.
+      type: http
+      scheme: bearer
+
+# Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
+security:
+  - UserIdAuth: []
+        
+        
+        
