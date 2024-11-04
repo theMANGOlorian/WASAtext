@@ -220,7 +220,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   
   /conversations/{conversationId}/addtogroup:
-    post:
+    put:
       parameters:
         - $ref: "#/components/parameters/conversationId"
       tags:
@@ -228,6 +228,7 @@ paths:
       summary: add user in group
       description: |
         add a user to a group already in
+      operationId: addToGroup
       requestBody:
         required: true
         content:
@@ -370,6 +371,21 @@ paths:
     get:
       parameters:
         - $ref: "#/components/parameters/conversationId"
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of messages to return
+          schema:
+            type: integer
+            example: 20
+        - name: offset
+          in: query
+          required: false
+          description: Number of messages to skip before starting to collect the result set
+          schema:
+            type: integer
+            example: 0
+        # GET /conversations/.../messages?limit=20&offset=0 HTTP/1.1
       tags:
         - Messages
       summary: list messages of a conversation
@@ -471,6 +487,7 @@ paths:
       summary: delete a message
       description: |
         delete a message froma a conversation
+      operationId: deleteMessage
       responses:
         "204":
           description: message deleted successfully
@@ -519,7 +536,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
   
-  /messages/{messagesId}/comment/{commentId}:
+  /messages/{messageId}/comment/{commentId}:
     delete:
       tags:
         - Comment
@@ -755,6 +772,3 @@ components:
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
   - TokenAuth: []
-        
-        
-        
