@@ -18,6 +18,9 @@ tags:
     description: endpoints for conversations
   - name: "Messages"
     description: endpoints for messages
+  - name: "Groups"
+    description: endpoints for groups related operations
+  - name: "Comment"
 
 paths:
   /session:
@@ -30,6 +33,7 @@ paths:
         If the user does not exist, it will be created,
         and an identifier is returned.
         If the user exists, the user identifier is returned.
+      #Ricorda, Il nome dell'utente è univoco
       operationId: doLogin
       requestBody:
         description: User details
@@ -167,7 +171,201 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+    post:
+      parameters:
+        - $ref: "#/components/parameters/userId"
+      tags: 
+        - Conversations
+      summary: start a new conversation
+      description: |
+        used to create a new group or add new user
+        in your conversation list 
+      operationId: startConversation
+      requestBody:
+        description: |
+          we need to know if you are creating a group or adding a new
+          user to your conversation list.
+          if you are creating a group then we will need the name but
+          if you are adding a person then we will need the person's 
+          name
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  oneOf:
+                    - $ref: "#/components/schemas/GroupName"
+                    - $ref: "#/components/schemas/UserName"
+      responses:
+        "201":
+          description: conversation created successfully
+          content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    name:
+                      oneOf:
+                        - $ref: "#/components/schemas/GroupName"
+                        - $ref: "#/components/schemas/UserName"
+                    conversationId:
+                      $ref: "#/components/schemas/Identifier"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  /conversations/{conversationId}/addtogroup:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      tags:
+        - Groups
+      summary: add user in group
+      description: |
+        add a user to a group already in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Identifier"
+                  description: List of user IDs to add to the group conversation
+      responses:
+        "201":
+          description: users added successfully
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    GroupName:
+                      $ref: "#/components/schemas/GroupName"
+                    GroupId:
+                      $ref: "#/components/schemas/Identifier"
+                    userIds:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Identifier"
+                      description: List of user IDs to add to the group conversation
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        
+  /conversations/{conversationId}:
+    delete:
+      tags:
+        - Groups
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      summary: leave group
+      description: |
+        leave group from your conversation list
+      operationId: leaveGroup
+      responses:
+        "204":
+          description: group successfully abandoned
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    GroupName:
+                      $ref: "#/components/schemas/GroupName"
+                    GroupId:
+                      $ref: "#/components/schemas/Identifier"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
           
+  /conversations/{conversationId}/setGroupName:
+    put:
+      tags:
+        - Groups
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      summary: change group name
+      description: |
+        set a new name for a group, must be a member of the group
+      operationId: setGroupName
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newName:
+                  $ref: "#/components/schemas/GroupName"
+      responses:
+        "202":
+          description: group name changed successfully
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    GroupName:
+                      $ref: "#/components/schemas/GroupName"
+                    GroupId:
+                      $ref: "#/components/schemas/Identifier"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      
+  /conversations/{conversationId}/setGroupPhoto:
+    put:
+      tags:
+        - Groups
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      summary: change photo group
+      description: |
+        set a new photo for a group, must be a member of the group
+      operationId: setGroupPhoto
+      requestBody:
+        required: true
+        content:
+          image/*:
+            schema:
+              $ref: "#/components/schemas/PhotoFile"
+      responses:
+        "202":
+          description: group photo changed successfully
+          content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    GroupName:
+                      $ref: "#/components/schemas/GroupName"
+                    GroupId:
+                      $ref: "#/components/schemas/Identifier"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
   /conversations/{conversationId}/messages:
     get:
       parameters:
@@ -286,8 +484,65 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      
   
+  /messages/{messageId}/comment:
+    put:
+      tags:
+        - Comment
+      parameters:
+        - $ref: "#/components/parameters/messageId"
+      summary: comment a message with a reaction
+      description: |
+        comment a message using an emoji user can comment with only one emoji
+      operationId: commentMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reaction:
+                  type: string
+                  description: "the emoji to use for reacting to the message"
+      responses:
+        "201":
+          description: message commented successfully
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/MessageDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  
+  /messages/{messagesId}/comment/{commentId}:
+    delete:
+      tags:
+        - Comment
+      parameters:
+        - $ref: "#/components/parameters/messageId"
+        - $ref: "#/components/parameters/commentId"
+      summary: remove a reaction
+      description: remove your reaction from a message
+      operationId: unCommentMessage
+      responses:
+        "204":
+          description: reaction removed successfully
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/MessageDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      
 # defined COMPONENTS
 components:
 
@@ -326,10 +581,18 @@ components:
       required: true
     
     messageId:
-      description: identifier for a single conversation
+      description: identifier for a single message
       schema:
         $ref: "#/components/schemas/Identifier"
       name: messageId
+      in: path
+      required: true
+    
+    commentId:
+      description: identifier for a single comment
+      schema:
+        $ref: "#/components/schemas/Identifier"
+      name: commentId
       in: path
       required: true
 
@@ -351,7 +614,7 @@ components:
       pattern: "^[a-z0-9]*?$"
       minLength: 3
       maxLength: 25
-    
+      
     GroupName:
       title: GroupName
       description: name associated with groupId
@@ -462,6 +725,9 @@ components:
       properties:
         conversationId:
           $ref: "#/components/schemas/Identifier"
+        conversationType:
+          type: string
+          enum: [group, private]
         conversationName:
           type: string
           description: "Username or group name"
@@ -480,18 +746,15 @@ components:
           example: "It's over Anakin, i've the highground"
         
   securitySchemes:
-    UserIdAuth:
+    TokenAuth:
       description: |
-        User authentication with the user ID passed
-        as it would be an authentication token.
-        Of course, that's extremely insecure, but it's done
-        according to the project specification.
+        User authentication with the token generated by backend application
       type: http
       scheme: bearer
 
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
-  - UserIdAuth: []
+  - TokenAuth: []
         
         
         
