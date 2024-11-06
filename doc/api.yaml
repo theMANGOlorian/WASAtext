@@ -21,7 +21,7 @@ tags:
   - name: "Groups"
     description: endpoints for groups related operations
   - name: "Comment"
-
+    description: endpoints for reactions related operations
 paths:
   /session:
     post:
@@ -82,7 +82,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserName"
+              type: object
+              properties:
+                name:
+                  $ref: "#/components/schemas/UserName"
       responses:
         "201":
           description: username set succesfully
@@ -126,16 +129,8 @@ paths:
             schema:
               $ref: "#/components/schemas/PhotoFile"
       responses:
-        "200":
+        "204":
           description: photo change successfully
-          content:
-            image/*:
-              schema:
-                type: object
-                format: binary
-                properties:
-                  photo:
-                    $ref: "#/components/schemas/PhotoFile"
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -161,9 +156,18 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ConversationInfo"
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConversationInfo"
+                  totalCount:
+                    type: integer
+                    description: Total number of conversations
+                required:
+                  - conversations
+                  - totalCount
                     
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -241,6 +245,8 @@ paths:
                   items:
                     $ref: "#/components/schemas/Identifier"
                   description: List of user IDs to add to the group conversation
+              required:
+                - userIds
       responses:
         "201":
           description: users added successfully
@@ -258,6 +264,10 @@ paths:
                       items:
                         $ref: "#/components/schemas/Identifier"
                       description: List of user IDs to add to the group conversation
+                  required:
+                    - GroupName
+                    - GroupId
+                    - userIds
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -397,13 +407,22 @@ paths:
       operationId: getConversation
       responses:
         "200":
-          description: list of messages retured successfully
+          description: List of messages returned successfully
           content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/MessageDetail"
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MessageDetail"
+                  totalCount:
+                    type: integer
+                    description: Total number of messages
+                required:
+                  - messages
+
         "400":
           $ref: "#/components/responses/BadRequest"
         "403":
@@ -413,7 +432,6 @@ paths:
     post:
       parameters: 
         - $ref: "#/components/parameters/conversationId"
-        - $ref: "#/components/parameters/userId"
       tags:
         - Messages
       summary: send a message
@@ -731,6 +749,15 @@ components:
                 $ref: "#/components/schemas/Identifier"
               userId:
                 $ref: "#/components/schemas/Identifier"
+      required:
+        - messageId
+        - senderId
+        - username
+        - text
+        - date
+        - status
+        - type
+        - reactions
     
     ConversationInfo:
       description: | 
@@ -772,3 +799,6 @@ components:
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
   - TokenAuth: []
+        
+        
+        
