@@ -162,6 +162,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/ConversationInfo"
+                    minItems: 0
+                    maxItems: 250
                   totalCount:
                     type: integer
                     description: Total number of conversations
@@ -227,7 +229,7 @@ paths:
         - $ref: "#/components/parameters/conversationId"
       tags:
         - Groups
-      summary: add user in group
+      summary: add users in group
       description: |
         add a user to a group already in
       operationId: addToGroup
@@ -243,6 +245,8 @@ paths:
                   items:
                     $ref: "#/components/schemas/Identifier"
                   description: List of user IDs to add to the group conversation
+                  minItems: 1
+                  maxItems: 250
               required:
                 - userIds
       responses:
@@ -258,10 +262,12 @@ paths:
                     GroupId:
                       $ref: "#/components/schemas/Identifier"
                     userIds:
+                      description: List of user IDs to add to the group conversation
                       type: array
                       items:
                         $ref: "#/components/schemas/Identifier"
-                      description: List of user IDs to add to the group conversation
+                      minItems: 1
+                      maxItems: 250
                   required:
                     - GroupName
                     - GroupId
@@ -416,6 +422,8 @@ paths:
                     type: array
                     items:
                       $ref: "#/components/schemas/MessageDetail"
+                    minItems: 0
+                    maxItems: 250
                   totalCount:
                     type: integer
                     description: Total number of messages
@@ -533,10 +541,18 @@ paths:
           application/json:
             schema:
               type: object
+              description: object with code of emoji (as string) 
               properties:
                 reaction:
                   type: string
-                  description: "the emoji to use for reacting to the message"
+                  example: "😂"
+                  enum:
+                    - "😊"
+                    - "😂"
+                    - "😍"
+                    - "😎"
+                    - "🥺"
+                  description: "User can comment with one of this emoji"
       responses:
         "201":
           description: message commented successfully
@@ -643,7 +659,7 @@ components:
       description: user name associated with userId
       type: string
       example: "DeadpoolPrime69"
-      pattern: "^[a-z0-9]*?$"
+      pattern: "^[a-zA-Z0-9]*$"
       minLength: 3
       maxLength: 25
       
@@ -652,7 +668,7 @@ components:
       description: name associated with groupId
       type: string
       example: "Avengers"
-      pattern: "^[a-z0-9]*?$"
+      pattern: "^[a-zA-Z0-9]*$"
       minLength: 3
       maxLength: 25
     
@@ -689,14 +705,17 @@ components:
           minLength: 1
           maxLength: 1024
           example: "May the force be with you"
+          description: text of the message
         photo:
           type: string
           format: binary
           minLength: 1
           maxLength: 20971520 # 20MB
+          description: binary of the photo max 20MB
         type:
           type: string
           enum: [text, photo]
+          description: type message, photo or a text message
       required:
         - type
         
@@ -708,6 +727,7 @@ components:
         - type: object
           properties:
             targetIdentifier:
+              description: forward a message to a private chat(username) OR group
               oneOf:
                 - $ref: "#/components/schemas/UserName"
                 - $ref: "#/components/schemas/GroupName"
@@ -726,26 +746,43 @@ components:
         username:
           type: string
           example: "Deadpool"
+          description: sender of the message
+          pattern: "^[a-zA-Z0-9]*$"
         text:
           $ref: "#/components/schemas/Text"
         date:
           type: string
           format: date-time
+          description: date and time of message
         status:
           type: string
-          enum: [inviato, consegnato, letto]  # Esempio di stati
+          enum: [sent, delivered, read]
+          description: status of the message (it can be sent, delivered or read )
         type:
           type: string
-          enum: [testo, foto]  # Tipi di messaggio
+          enum: [text, photo]
+          description: type of the message
         reactions:
           type: array
+          description: array of comments (reactions/emoji)
           items:
             type: object
+            description: object with the emoji identifier and the sender id
             properties:
               emoji:
-                $ref: "#/components/schemas/Identifier"
+                type: string
+                example: "😂"
+                enum:
+                  - "😊"
+                  - "😂"
+                  - "😍"
+                  - "😎"
+                  - "🥺"
+                description: "User can comment with one of this emoji"
               userId:
                 $ref: "#/components/schemas/Identifier"
+          minItems: 0
+          maxItems: 250
       required:
         - messageId
         - senderId
@@ -767,20 +804,24 @@ components:
         conversationId:
           $ref: "#/components/schemas/Identifier"
         conversationType:
+          description: type of conversation
           type: string
           enum: [group, private]
         conversationName:
           type: string
           description: "Username or group name"
           example: "Deadpool"
+          pattern: "^[a-zA-Z0-9]*$"
         photo:
           type: string
           format: binary
+          description: photo data in binary
         lastMessageDate:
           type: string
           description: "timestamp of massage"
           format: date-time
           example: "2024-12-23T09:00:00Z"
+          pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
         lastMessagePreview:
           type: string
           description: "Snippet for the last massage sent or an icon for images"
@@ -796,3 +837,6 @@ components:
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
   - TokenAuth: []
+        
+        
+        
