@@ -139,9 +139,9 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   
   /users/{userId}/conversations:
+    parameters:
+      - $ref: "#/components/parameters/userId"
     get:
-      parameters:
-        - $ref: "#/components/parameters/userId"
       tags:
         - Conversations
       summary: get the list of conversations of a specific user
@@ -176,8 +176,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      parameters:
-        - $ref: "#/components/parameters/userId"
       tags: 
         - Conversations
       summary: start a new conversation
@@ -378,19 +376,20 @@ paths:
           $ref: "#/components/responses/InternalServerError"
   
   /conversations/{conversationId}/messages:
+    parameters:
+      - $ref: "#/components/parameters/conversationId"
     get:
       parameters:
-        - $ref: "#/components/parameters/conversationId"
         - name: limit
           in: query
-          required: false
+          required: true
           description: Maximum number of messages to return
           schema:
             type: integer
             example: 20
         - name: offset
           in: query
-          required: false
+          required: true
           description: Number of messages to skip before starting to collect the result set
           schema:
             type: integer
@@ -430,8 +429,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      parameters: 
-        - $ref: "#/components/parameters/conversationId"
       tags:
         - Messages
       summary: send a message
@@ -563,7 +560,7 @@ paths:
         - $ref: "#/components/parameters/commentId"
       summary: remove a reaction
       description: remove your reaction from a message
-      operationId: unCommentMessage
+      operationId: uncommentMessage
       responses:
         "204":
           description: reaction removed successfully
@@ -799,6 +796,3 @@ components:
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
   - TokenAuth: []
-        
-        
-        
