@@ -22,365 +22,286 @@ tags:
     description: endpoints for groups related operations
   - name: "Comment"
     description: endpoints for reactions related operations
+  - name: "Images"
+    description: endpoints for binary images
+
 paths:
   /session:
     post:
-      tags: 
+      tags:
         - Login
-      summary: Logs in the user account
+      summary: Logs in or creates the user account
       security: []
       description: |
-        If the user does not exist, it will be created,
-        and an identifier is returned.
-        If the user exists, the user identifier is returned.
-      #Ricorda, Il nome dell'utente è univoco
+        Logs the user in by username. If the user does not exist, the account will be created, 
+        and a unique identifier will be returned. If the user already exists, only the identifier 
+        is returned, without creating a new account.
       operationId: doLogin
-      requestBody:
-        description: User details
+      requestBody: 
+        description: User's name is required for login or account creation.
         content:
           application/json:
             schema:
               type: object
-              properties:
-                name:
-                  $ref: "#/components/schemas/UserName"
+              description: "The username used for login or registration."
+              properties: 
+                username:
+                  $ref: "#/components/schemas/Name"
+              required:
+                - username
+                  
         required: true
       responses:
-        '201':
-          description: User log-in action successful
+        "200":
+          description: "User logged in successfully. The user already exists."
           content:
             application/json:
               schema:
+                description: "Returns the user's unique identifier."
                 type: object
-                properties:
+                properties: 
                   identifier:
                     $ref: "#/components/schemas/Identifier"
+                required:
+                  - identifier
+        "201":
+          description: "User account created and logged in successfully."
+          content:
+            application/json:
+              schema:
+                description: "Returns the new user's unique identifier."
+                type: object
+                properties: 
+                  identifier:
+                    $ref: "#/components/schemas/Identifier"
+                required:
+                  - identifier
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          description: Login failed
-          headers:
-            X-Message:
-              description: Error message
-              schema: { type: string }
+          $ref: '#/components/responses/Forbidden'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-                    
-  /users/{userId}/setUsername:
+          $ref: '#/components/responses/InternalServerError'
+      
+        
+  /Username:
     put:
-      parameters:
-      - $ref: "#/components/parameters/userId"
       tags:
         - User
-      summary: change the username
+      summary: change username
       description: |
-        used to update the userneme or setting it for the current user logged in
+        change your Username to a new, unused one
       operationId: setMyUserName
       requestBody:
-        description: a username to be set
+        description: "send the request with the new username" 
         required: true
         content:
           application/json:
             schema:
+              description: "object with new username as a string"
               type: object
-              properties:
-                name:
-                  $ref: "#/components/schemas/UserName"
+              properties: 
+                username:
+                  $ref: "#/components/schemas/Name"
+              required:
+                - username
       responses:
-        "201":
-          description: username set succesfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  username:
-                    $ref: "#/components/schemas/UserName"
         "202":
-          description: username already exists
+          description: "username changed successfully" 
+          content:
+            application/json:
+              schema:
+                description: new Username
+                type: object
+                properties: 
+                  username:
+                    $ref: '#/components/schemas/Name'
+                required:
+                - username
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "409":
+          description: "Conflict: The new username is already taken."
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  username:
-                    $ref: "#/components/schemas/UserName"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+                  message:
+                    type: string
+                    example: "The username is already taken, please choose another one."
         "500":
-          $ref: "#/components/responses/InternalServerError"
-          
-  /users/{userId}/setUserphoto:
+          $ref: '#/components/responses/InternalServerError'
+  
+  /PhotoProfile:
     put:
-      parameters:
-        - $ref: "#/components/parameters/userId"
       tags:
         - User
-      summary: change the photo profile
-      description: used to set the photo for the current user logged in
+      summary: change photo profile
+      description: send the request with the new photo profile
       operationId: setMyPhoto
       requestBody:
         description: a photo to be set
         required: true
         content:
-          image/*:
+          image/png:
+            schema: 
+              $ref: "#/components/schemas/Image"
+          image/jpeg:
             schema:
-              $ref: "#/components/schemas/PhotoFile"
-      responses:
-        "204":
-          description: photo change successfully
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  
-  /users/{userId}/conversations:
-    parameters:
-      - $ref: "#/components/parameters/userId"
-    get:
-      tags:
-        - Conversations
-      summary: get the list of conversations of a specific user
-      description: | 
-        used to get the list of conversations, sorted in reverse
-        chronological order, for the current user
-        logged in using userId
-      operationId: getMyConversations
+              $ref: "#/components/schemas/Image"
       responses:
         "200":
-          description: List of conversations returned successfully
+          description: Profile photo updated successfully.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  conversations:
+                  message:
+                    type: string
+                    example: "Profile photo updated successfully."
+                required:
+                  - message
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversations:
+    get:
+      tags:
+        - Conversations
+      summary: Conversations list
+      description: Get the list of conversations of a specific user
+      operationId: getMyConversations
+      responses:
+        "200":
+          description: List of conversations retured successfully
+          content:
+            application/json:
+              schema:
+                description: array of conversation of a user and total of conversation
+                type: object
+                properties:
+                  coversations:
+                    description: array of conversation with all associated informations 
                     type: array
                     items:
                       $ref: "#/components/schemas/ConversationInfo"
                     minItems: 0
                     maxItems: 250
                   totalCount:
-                    type: integer
                     description: Total number of conversations
+                    type: integer
                 required:
                   - conversations
                   - totalCount
-                    
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: '#/components/responses/InternalServerError'
     post:
-      tags: 
+      tags:
         - Conversations
       summary: start a new conversation
       description: |
-        used to create a new group or add new user
-        in your conversation list 
+        used to create a new group or add new user in your conversation list
       operationId: startConversation
       requestBody:
         description: |
-          we need to know if you are creating a group or adding a new
-          user to your conversation list.
-          if you are creating a group then we will need the name but
-          if you are adding a person then we will need the person's 
-          name
+          we need to know if you are creating a group or adding a new user to your conversation list.
+          if you are creating a group then we will need the name but if you are adding a person then we will need then person's name.
         required: true
         content:
           application/json:
             schema:
-              type: object
+              description: need a name and a type of conversation
+              type: object 
               properties:
                 name:
-                  oneOf:
-                    - $ref: "#/components/schemas/GroupName"
-                    - $ref: "#/components/schemas/UserName"
-      responses:
-        "201":
-          description: conversation created successfully
-          content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    name:
-                      oneOf:
-                        - $ref: "#/components/schemas/GroupName"
-                        - $ref: "#/components/schemas/UserName"
-                    conversationId:
-                      $ref: "#/components/schemas/Identifier"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  
-  /conversations/{conversationId}/addtogroup:
-    put:
-      parameters:
-        - $ref: "#/components/parameters/conversationId"
-      tags:
-        - Groups
-      summary: add users in group
-      description: |
-        add a user to a group already in
-      operationId: addToGroup
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userIds:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Identifier"
-                  description: List of user IDs to add to the group conversation
-                  minItems: 1
-                  maxItems: 250
+                  $ref: "#/components/schemas/Name"
+                typeConversation:
+                  type: string
+                  enum: [private,group]
               required:
-                - userIds
+                - name
+                - typeConversation
       responses:
         "201":
-          description: users added successfully
+          description: "conversation created successfully"
           content:
             application/json:
-                schema:
-                  type: object
-                  properties:
-                    GroupName:
-                      $ref: "#/components/schemas/GroupName"
-                    GroupId:
-                      $ref: "#/components/schemas/Identifier"
-                    userIds:
-                      description: List of user IDs to add to the group conversation
-                      type: array
-                      items:
-                        $ref: "#/components/schemas/Identifier"
-                      minItems: 1
-                      maxItems: 250
-                  required:
-                    - GroupName
-                    - GroupId
-                    - userIds
+              schema:
+                description: "response have 3 field message from server, name and type convesation"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "conversation started"
+                  name:
+                    $ref: "#/components/schemas/Name"
+                  typeConverstion:
+                    type: string
+                    enum: [private,group]
+                required:
+                  - message
+                  - name
+                  - typeConversaton
+        "404":
+          description: "user not found"
+          content:
+            application/json:
+              schema:
+                description: "username not found because does not exist"
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "user not found"
+                required:
+                  - message
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-        
-  /conversations/{conversationId}:
-    delete:
+          $ref: '#/components/responses/InternalServerError'
+
+  /images/{photoId}/getPhoto:
+    get:
       tags:
-        - Groups
+        - Images
+      summary: get photos
+      description: get photos using photoId in binary format
+      operationId: getPhotos
       parameters:
-        - $ref: "#/components/parameters/conversationId"
-      summary: leave group
-      description: |
-        leave group from your conversation list
-      operationId: leaveGroup
+        - $ref: "#/components/parameters/photoId"
       responses:
-        "204":
-          description: group successfully abandoned
+        "200":
+          description: photo returned successfully
           content:
-            application/json:
-                schema:
-                  type: object
-                  properties:
-                    GroupName:
-                      $ref: "#/components/schemas/GroupName"
-                    GroupId:
-                      $ref: "#/components/schemas/Identifier"
+            image/png:
+              schema:
+                $ref: "#/components/schemas/Image"
+            image/jpeg:
+              schema:
+                $ref: "#/components/schemas/Image"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
+        "404":
+          $ref: '#/components/responses/NotFound'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-          
-  /conversations/{conversationId}/setGroupName:
-    put:
-      tags:
-        - Groups
-      parameters:
-        - $ref: "#/components/parameters/conversationId"
-      summary: change group name
-      description: |
-        set a new name for a group, must be a member of the group
-      operationId: setGroupName
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                newName:
-                  $ref: "#/components/schemas/GroupName"
-      responses:
-        "202":
-          description: group name changed successfully
-          content:
-            application/json:
-                schema:
-                  type: object
-                  properties:
-                    GroupName:
-                      $ref: "#/components/schemas/GroupName"
-                    GroupId:
-                      $ref: "#/components/schemas/Identifier"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-      
-  /conversations/{conversationId}/setGroupPhoto:
-    put:
-      tags:
-        - Groups
-      parameters:
-        - $ref: "#/components/parameters/conversationId"
-      summary: change photo group
-      description: |
-        set a new photo for a group, must be a member of the group
-      operationId: setGroupPhoto
-      requestBody:
-        required: true
-        content:
-          image/*:
-            schema:
-              $ref: "#/components/schemas/PhotoFile"
-      responses:
-        "202":
-          description: group photo changed successfully
-          content:
-            application/json:
-                schema:
-                  type: object
-                  properties:
-                    GroupName:
-                      $ref: "#/components/schemas/GroupName"
-                    GroupId:
-                      $ref: "#/components/schemas/Identifier"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  
+          $ref: '#/components/responses/InternalServerError'
+
   /conversations/{conversationId}/messages:
     parameters:
       - $ref: "#/components/parameters/conversationId"
@@ -389,26 +310,23 @@ paths:
         - name: limit
           in: query
           required: true
-          description: Maximum number of messages to return
+          description: Maximum number of a messages to return
           schema:
             type: integer
             example: 20
         - name: offset
           in: query
           required: true
-          description: Number of messages to skip before starting to collect the result set
+          description: Number of message to skip before starting to collect
           schema:
             type: integer
             example: 0
-        # GET /conversations/.../messages?limit=20&offset=0 HTTP/1.1
       tags:
         - Messages
       summary: list messages of a conversation
       description: | 
-        open a conversation to view all exchanged messages, displayed in reverse chronological order. 
-        Each message includes the timestamp, the content (whether text or
-        photo), and the sender’s username for received messages, or one/two 
-        checkmarks to indicate the status of sent messages. 
+        open a conversation to view all exchanged messages, displayed in reverse chronologial order.
+        Each message include the timestamp, the content and the sender's username. and one/two checkmarks to indicate the status of sent messages.
       operationId: getConversation
       responses:
         "200":
@@ -416,6 +334,7 @@ paths:
           content:
             application/json:
               schema:
+                description: object with message details
                 type: object
                 properties:
                   messages:
@@ -429,170 +348,475 @@ paths:
                     description: Total number of messages
                 required:
                   - messages
-
+                  - totalCount
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversations/{conversationId}/sendText: 
     post:
       tags:
         - Messages
-      summary: send a message
-      description: | 
-        used to send messsage to a specific conversation
+      summary: send a text message
+      description: send a text message as a string to a spcific conversation using conversationId
       operationId: sendMessage
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
       requestBody:
-        description: a message to be send
+        description: needed a text to be sent
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewMessage"
+              $ref: "#/components/schemas/NewTextMessage"
       responses:
-        "200":
+        "202":
           description: message sent successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NewMessage"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-  
-  /conversations/{conversationId}/messages/{messageId}/forward:
-    post:
-      parameters:
-        - $ref: "#/components/parameters/conversationId"
-        - $ref: "#/components/parameters/messageId"
-      tags:
-        - Messages
-      summary: forward a message
-      description: forward a message to an another conversation
-      operationId: forwardMessage
-      requestBody:
-        description: The name of the conversation to which the message should be forwarded
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                target:
-                  oneOf:
-                    - $ref: "#/components/schemas/UserName"
-                    - $ref: "#/components/schemas/GroupName"
-      responses:
-        "201":
-          description: message sent successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ForwardMessage"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /conversations/{conversationId}/messages/{messageId}:
-    delete:
-      parameters:
-        - $ref: "#/components/parameters/conversationId"
-        - $ref: "#/components/parameters/messageId"
-      tags: 
-        - Messages
-      summary: delete a message
-      description: |
-        delete a message froma a conversation
-      operationId: deleteMessage
-      responses:
-        "204":
-          description: message deleted successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageDetail"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-  
-  /messages/{messageId}/comment:
-    put:
+          $ref: '#/components/responses/InternalServerError'
+
+      
+  /conversations/{conversationId}/sendImage:
+    post:
       tags:
-        - Comment
+        - Messages
+      summary: send an image
+      description: send an image message, png or jpeg
+      operationId: sendImage
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      requestBody:
+        description: image file needed
+        required: true
+        content:
+          image/png:
+            schema: 
+              $ref: "#/components/schemas/Image"
+          image/jpeg:
+            schema:
+              $ref: "#/components/schemas/Image"
+      responses:
+        "202":
+          description: image sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageDetail"
+          
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+  
+  /messages/{messageId}/forward:
+    post:
+      tags:
+        - Messages
+      summary: forward a message
+      description: forward a message (messageId) to an another conversation (conversationId) of your conversations list,
+      operationId: forwardMessage
       parameters:
         - $ref: "#/components/parameters/messageId"
-      summary: comment a message with a reaction
-      description: |
-        comment a message using an emoji user can comment with only one emoji
-      operationId: commentMessage
+      responses:
+        "202":
+          description: message forwarded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageDetail"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'    
+  
+  /messages/{messageId}:
+    delete:
+      tags:
+        - Messages
+      summary: delete a message using messageId
+      description: delete a message you sent in the past
+      operationId: deleteMessage
+      parameters:
+        - $ref: "#/components/parameters/messageId"
+      responses:
+        "204":
+          description: message deleted successfully
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+  
+  /conversations/{conversationId}/addToGroup:
+    put:
+      tags:
+        - Groups
+      summary: add an user in a group
+      description: add a user in a group, you must be in the group already
+      operationId: addToGroup
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
+              description: needed a userId to add a person in a group
               type: object
-              description: object with code of emoji (as string) 
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Identifier"
+                  description: List of user IDs to add in a group
+              required:
+                - userIds
+      responses:
+        "200":
+          description: users added
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversations/{conversationId}:
+    delete:
+      tags:
+        - Groups
+      summary: leave a group
+      description: leave a group using conversationId
+      operationId: leaveGroup
+      parameters:
+        - $ref: '#/components/parameters/conversationId'
+      responses:
+        "204":
+          description: group successfully abandoned
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversations/{conversationId}/setGroupName:
+    put:
+      tags:
+        - Groups
+      summary: change group name
+      description: set a new name for a group, must be a member group
+      operationId: setGroupName
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              description: a new group name 
+              type: object
+              properties:
+                name:
+                  $ref: "#/components/schemas/Name"
+              required:
+                - name
+      responses:
+        "200":
+          description: group name changed successfully
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+  /conversations/{conversationId}/setGroupPhoto:
+    put:
+      tags:
+        - Groups
+      summary: change group photo
+      description: set a new image as photo profile for a group, you must be in the group
+      operationId: setGroupPhoto
+      parameters:
+        - $ref: "#/components/parameters/conversationId"
+      requestBody:
+        required: true
+        content:
+          image/png:
+            schema:
+              $ref: "#/components/schemas/Image"
+          image/jpeg:
+            schema:
+              $ref: "#/components/schemas/Image"
+      responses:
+        "200":
+          description: photo group changed successfully
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+          
+  /messages/{messageId}/comment:
+    put:
+      tags:
+        - Comment
+      summary: add a reaction to a message
+      description: add a reaction to a message of a coversation, you can choose between 5 emoji
+      operationId: commentMessage
+      parameters:
+        - $ref: "#/components/parameters/messageId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              description: choose an emoji
+              type: object
               properties:
                 reaction:
+                  description: there are 5 different pre-selected emoji
                   type: string
-                  example: "😂"
-                  enum:
-                    - "😊"
-                    - "😂"
-                    - "😍"
-                    - "😎"
-                    - "🥺"
-                  description: "User can comment with one of this emoji"
+                  enum: ["😊","😂","😍","😎","🥺"]
+                  example: "😎"
+              required:
+                - reaction
       responses:
-        "201":
+        "200":
           description: message commented successfully
-          content:
-            application/json:
-              schema:
-                  $ref: "#/components/schemas/MessageDetail"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-  
-  /messages/{messageId}/comment/{commentId}:
+          $ref: '#/components/responses/InternalServerError'
+  /messages/{messageId}/uncomment:
     delete:
       tags:
         - Comment
+      summary: remove your reaction to a message
+      description: remove a reaction to a message of a coversation
+      operationId: uncommentMessage
       parameters:
         - $ref: "#/components/parameters/messageId"
-        - $ref: "#/components/parameters/commentId"
-      summary: remove a reaction
-      description: remove your reaction from a message
-      operationId: uncommentMessage
       responses:
-        "204":
-          description: reaction removed successfully
-          content:
-            application/json:
-              schema:
-                  $ref: "#/components/schemas/MessageDetail"
+        "200":
+            description: reaction removed successfully
         "400":
-          $ref: "#/components/responses/BadRequest"
+          $ref: '#/components/responses/BadRequest'
         "403":
-          $ref: "#/components/responses/Forbidden"
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
         "500":
-          $ref: "#/components/responses/InternalServerError"
-      
-# defined COMPONENTS
+          $ref: '#/components/responses/InternalServerError'
+          
 components:
+  parameters:
+    photoId:
+      description: identifier for a single photo as a integer
+      schema:
+        $ref: "#/components/schemas/photoId"
+      name: photoId
+      in: path
+      required: true
+    conversationId:
+      description: identifier for a single conversation
+      name: conversationId
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+    messageId:
+      description: identifier for a single messageId
+      name: messageId
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+  schemas: 
+    Name:
+      title: UserName/GroupName
+      description: schema used to rappresent username or group name
+      type: string
+      pattern: "^[a-zA-Z0-9]*$"
+      minLength: 3
+      maxLength: 25
+      example: "Deadpool69"
+    Identifier:
+      title: ID
+      description: "A unique identifier for the user, in the specified format."
+      type: string
+      pattern: "^[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}$"
+      minLength: 15
+      maxLength: 15
+      example: "ABCDE-ABCDE-12345"
+    Image:
+      title: Image
+      description: Image binary format as a string
+      type: string 
+      format: binary
+      minLength: 1
+      maxLength: 20971520 # 20MB
+    photoId:
+      title: photo Identifier
+      description: photo id as integer, is unique
+      type: integer
+    ConversationInfo:
+      description: |
+        list of conversation with other users or with groups, sorted in reverse chronological order.
+        Each element in the list must display the username of the other person or the group name, the user profile photo or the group photo, the date and time of the latest message, the preview (snippet) of the text message, or an icon for a photo message.
+      type: object
+      properties:
+        conversationId:
+          $ref: "#/components/schemas/Identifier"
+        conversationType: 
+          description: type of conversation
+          type: string
+          enum: [private,group]
+        conversationName:
+          $ref: "#/components/schemas/Name"
+        photoProfileId:
+          description: "photo id (unique)"
+          type: integer
+          example: 12345
+        lastMessageTimeStamp:
+          description: timestamp of the last message of conversation
+          type: string
+          format: date-time
+          example: "2024-12-23T09:00:00Z"
+          pattern: "^\\d{4}-\\d{2}-\\d{2}T-\\d{2}:\\d{2}:\\d{2}Z$"
+        lastMessagePreview:
+          description: snippet of the last message in coversation
+          type: string
+          maxLength: 50
+          example: "hey buddy, How ..."
+      required:
+        - conversationId
+        - conversationType
+        - conversationName
+        - photoProfileId
+    Text:
+      description: body of the message
+      type: string
+      minLength: 1
+      maxLength: 5000
+      pattern: "^.*?$"
+      example: "I am the marvel jesus"
+    MessageDetail:
+      description: message information
+      type: object
+      properties:
+        messageId:
+          $ref: "#/components/schemas/Identifier"
+        senderId:
+          $ref: "#/components/schemas/Identifier"
+        username:
+          description: sender of the message
+          type: string
+          example: "Deadpool"
+          pattern: "^[a-zA-Z0-9]*$"
+        text:
+          $ref: "#/components/schemas/Text"
+        image:
+          description: image content
+          type: integer
+          example: 12345
+        reply:
+          $ref: "#/components/schemas/Identifier" 
+        date:
+          description: data and time of message
+          type: string
+          format: date-time
+        status:
+          description: status od the message
+          type: string
+          enum: [read,received]
+        typeContent:
+          description: content type, it can be a phot or a text
+          type: string
+          enum: [text,photo]
+        reactions:
+          description: array of reactions (emoji)
+          type: array
+          items:
+            type: object
+            description: object with the emoji idetifier and the sender id
+            properties:
+              emoji:
+                description: user can react with one of this emoji
+                type: string
+                example: "😂"
+                enum:
+                  - "😊"
+                  - "😂"
+                  - "😍"
+                  - "😎"
+                  - "🥺"
+              userId:
+                $ref: "#/components/schemas/Identifier"
+          minItems: 0
+          maxItems: 250
+      required:
+        - messageId
+        - senderId
+        - username
+        - text
+        - date
+        - status
+        - typeContent
+        - reactions
+
+    NewTextMessage:
+      description: field of a text message
+      type: object
+      properties:
+        senderId:
+          $ref: "#/components/schemas/Identifier"
+        bodyMessage:
+          $ref: "#/components/schemas/Text"
+        replyTo:
+          $ref: "#/components/schemas/Identifier"
+      required:
+        - senderId
+        - bodyMessage
+          
 
   responses:
     #400 class responses
@@ -611,222 +835,6 @@ components:
     InternalServerError:
       description: the server encountered an error while processing the request
 
-  parameters:
-    userId:
-      description: identifier for a single user
-      schema:
-        $ref: "#/components/schemas/Identifier"
-      name: userId
-      in: path
-      required: true
-      
-    conversationId:
-      description: identifier for a single conversation
-      schema:
-        $ref: "#/components/schemas/Identifier"
-      name: conversationId
-      in: path
-      required: true
-    
-    messageId:
-      description: identifier for a single message
-      schema:
-        $ref: "#/components/schemas/Identifier"
-      name: messageId
-      in: path
-      required: true
-    
-    commentId:
-      description: identifier for a single comment
-      schema:
-        $ref: "#/components/schemas/Identifier"
-      name: commentId
-      in: path
-      required: true
-
-  schemas:
-    Identifier:
-      description: The unique resource ID as a string
-      type: string
-      example: "123e4567-e89b-12d3-a456-426614174000"
-      minLength: 36
-      maxLength: 36
-      readOnly: true
-      pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-
-    UserName:
-      title: username
-      description: user name associated with userId
-      type: string
-      example: "DeadpoolPrime69"
-      pattern: "^[a-zA-Z0-9]*$"
-      minLength: 3
-      maxLength: 25
-      
-    GroupName:
-      title: GroupName
-      description: name associated with groupId
-      type: string
-      example: "Avengers"
-      pattern: "^[a-zA-Z0-9]*$"
-      minLength: 3
-      maxLength: 25
-    
-    PhotoFile:
-      description: Photo file to upload, directly as a binary file.
-      # Schema indicated according to the official docs:
-      # https://swagger.io/docs/specification/data-models/data-types/#file
-      type: string
-      minLength: 1
-      maxLength: 20971520 # 20MB
-      format: binary
-    
-    Text:
-      description: body of the message
-      type: string
-      minLength: 1
-      maxLength: 1024
-      pattern: "^.*?$"
-      example: "I am the marvel jesus"
-    
-    NewMessage:
-      type: object
-      description: send a new message
-      properties:
-        senderId:
-          description: The unique ID of the message sender
-          type: string
-          example: "123e4567-e89b-12d3-a456-426614174000"
-          minLength: 36
-          maxLength: 36
-          pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-        messageBody:
-          type: string
-          minLength: 1
-          maxLength: 1024
-          example: "May the force be with you"
-          description: text of the message
-        photo:
-          type: string
-          format: binary
-          minLength: 1
-          maxLength: 20971520 # 20MB
-          description: binary of the photo max 20MB
-        type:
-          type: string
-          enum: [text, photo]
-          description: type message, photo or a text message
-      required:
-        - type
-        
-    ForwardMessage:
-      type: object
-      description: Forward a message to another conversation
-      allOf:
-        - $ref: "#/components/schemas/NewMessage" # Eredita tutte le proprietà di NewMessage
-        - type: object
-          properties:
-            targetIdentifier:
-              description: forward a message to a private chat(username) OR group
-              oneOf:
-                - $ref: "#/components/schemas/UserName"
-                - $ref: "#/components/schemas/GroupName"
-          required:
-            - targetIdentifier
-  
-          
-    MessageDetail:
-      description: message information
-      type: object
-      properties:
-        messageId:
-          $ref: "#/components/schemas/Identifier"
-        senderId:
-          $ref: "#/components/schemas/Identifier"
-        username:
-          type: string
-          example: "Deadpool"
-          description: sender of the message
-          pattern: "^[a-zA-Z0-9]*$"
-        text:
-          $ref: "#/components/schemas/Text"
-        date:
-          type: string
-          format: date-time
-          description: date and time of message
-        status:
-          type: string
-          enum: [sent, delivered, read]
-          description: status of the message (it can be sent, delivered or read )
-        type:
-          type: string
-          enum: [text, photo]
-          description: type of the message
-        reactions:
-          type: array
-          description: array of comments (reactions/emoji)
-          items:
-            type: object
-            description: object with the emoji identifier and the sender id
-            properties:
-              emoji:
-                type: string
-                example: "😂"
-                enum:
-                  - "😊"
-                  - "😂"
-                  - "😍"
-                  - "😎"
-                  - "🥺"
-                description: "User can comment with one of this emoji"
-              userId:
-                $ref: "#/components/schemas/Identifier"
-          minItems: 0
-          maxItems: 250
-      required:
-        - messageId
-        - senderId
-        - username
-        - text
-        - date
-        - status
-        - type
-        - reactions
-    
-    ConversationInfo:
-      description: | 
-        list of conversations with other users or with groups, sorted in reverse
-        chronological order. Each element in the list must display the username of the other person or the
-        group name, the user profile photo or the group photo, the date and time of the latest message,
-        the preview (snippet) of the text message, or an icon for a photo message.
-      type: object
-      properties:
-        conversationId:
-          $ref: "#/components/schemas/Identifier"
-        conversationType:
-          description: type of conversation
-          type: string
-          enum: [group, private]
-        conversationName:
-          type: string
-          description: "Username or group name"
-          example: "Deadpool"
-          pattern: "^[a-zA-Z0-9]*$"
-        photo:
-          type: string
-          format: binary
-          description: photo data in binary
-        lastMessageDate:
-          type: string
-          description: "timestamp of massage"
-          format: date-time
-          example: "2024-12-23T09:00:00Z"
-          pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
-        lastMessagePreview:
-          type: string
-          description: "Snippet for the last massage sent or an icon for images"
-          example: "It's over Anakin, i've the highground"
-        
   securitySchemes:
     TokenAuth:
       description: |
@@ -837,6 +845,3 @@ components:
 # Apply security scheme globally, disabling it explicitly when unnecessary with security: [].
 security:
   - TokenAuth: []
-        
-        
-        
