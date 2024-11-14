@@ -39,6 +39,7 @@ paths:
       operationId: doLogin
       requestBody: 
         description: User's name is required for login or account creation.
+        required: true
         content:
           application/json:
             schema:
@@ -49,8 +50,7 @@ paths:
                   $ref: "#/components/schemas/Name"
               required:
                 - username
-                  
-        required: true
+        
       responses:
         "200":
           description: "User logged in successfully. The user already exists."
@@ -84,7 +84,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       
         
-  /Username:
+  /users/{userId}/username:
     put:
       tags:
         - User
@@ -92,6 +92,8 @@ paths:
       description: |
         change your Username to a new, unused one
       operationId: setMyUserName
+      parameters:
+        - $ref: "#/components/parameters/userId"
       requestBody:
         description: "send the request with the new username" 
         required: true
@@ -117,7 +119,7 @@ paths:
                   username:
                     $ref: '#/components/schemas/Name'
                 required:
-                - username
+                  - username
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -131,17 +133,21 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "The username is already taken, please choose another one."
+                    example: "username already taken"
+                required:
+                  - message
         "500":
           $ref: '#/components/responses/InternalServerError'
   
-  /PhotoProfile:
+  /users/{userId}/photoProfile:
     put:
       tags:
         - User
       summary: change photo profile
       description: send the request with the new photo profile
       operationId: setMyPhoto
+      parameters:
+        - $ref: "#/components/parameters/userId"
       requestBody:
         description: a photo to be set
         required: true
@@ -172,7 +178,9 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
           
-  /conversations:
+  /users/{userId}/conversations:
+    parameters:
+      - $ref: "#/components/parameters/userId"
     get:
       tags:
         - Conversations
@@ -188,7 +196,7 @@ paths:
                 description: array of conversation of a user and total of conversation
                 type: object
                 properties:
-                  coversations:
+                  conversations:
                     description: array of conversation with all associated informations 
                     type: array
                     items:
@@ -247,13 +255,13 @@ paths:
                     example: "conversation started"
                   name:
                     $ref: "#/components/schemas/Name"
-                  typeConverstion:
+                  typeConversation:
                     type: string
                     enum: [private,group]
                 required:
                   - message
                   - name
-                  - typeConversaton
+                  - typeConversation
         "404":
           description: "user not found"
           content:
@@ -274,7 +282,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
 
-  /images/{photoId}/getPhoto:
+  /images/{photoId}/photo:
     get:
       tags:
         - Images
@@ -314,13 +322,18 @@ paths:
           schema:
             type: integer
             example: 20
-        - name: offset
+        - name: cursor
           in: query
-          required: true
-          description: Number of message to skip before starting to collect
+          required: false
+          description: |
+            Token to retrieve the next set of messages starting after this cursor.
+            not required because you can get your first set of data (messages).
           schema:
-            type: integer
-            example: 0
+            type: string
+            example: "XXXXX-XXXXX-XXXXX"
+            minLength: 17
+            maxLength: 17
+            pattern: "^[a-zA-Z]{5}-[a-zA-Z]{5}-[a-zA-Z]{5}$"
       tags:
         - Messages
       summary: list messages of a conversation
@@ -346,9 +359,12 @@ paths:
                   totalCount:
                     type: integer
                     description: Total number of messages
+                  nextCursor:
+                    $ref: "#/components/schemas/Identifier"
                 required:
                   - messages
                   - totalCount
+                  - nextCursor
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -356,7 +372,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
           
-  /conversations/{conversationId}/sendText: 
+  /conversations/{conversationId}/text: 
     post:
       tags:
         - Messages
@@ -389,7 +405,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
       
-  /conversations/{conversationId}/sendImage:
+  /conversations/{conversationId}/image:
     post:
       tags:
         - Messages
@@ -471,7 +487,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
   
-  /conversations/{conversationId}/addToGroup:
+  /conversations/{conversationId}/member:
     put:
       tags:
         - Groups
@@ -485,19 +501,34 @@ paths:
         content:
           application/json:
             schema:
-              description: needed a userId to add a person in a group
+              description: needed a usernames to add a person in a group
               type: object
               properties:
-                userIds:
+                usernames:
+                  description: List of usernames to add in a group
                   type: array
                   items:
-                    $ref: "#/components/schemas/Identifier"
-                  description: List of user IDs to add in a group
+                    $ref: "#/components/schemas/Name"
+                  minItems: 1
+                  maxItems: 25
               required:
                 - userIds
       responses:
         "200":
           description: users added
+          content:
+            application/json:
+              schema:
+                properties:
+                  usernames:
+                    description: List of user successfully added
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Name"
+                    minItems: 1
+                    maxItems: 25
+                required:
+                  - usernames
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -528,7 +559,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
           
-  /conversations/{conversationId}/setGroupName:
+  /conversations/{conversationId}/groupName:
     put:
       tags:
         - Groups
@@ -552,6 +583,14 @@ paths:
       responses:
         "200":
           description: group name changed successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  groupName:
+                    $ref: "#/components/schemas/Name"
+                required:
+                  - groupName
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -561,7 +600,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
           
-  /conversations/{conversationId}/setGroupPhoto:
+  /conversations/{conversationId}/groupPhoto:
     put:
       tags:
         - Groups
@@ -580,7 +619,7 @@ paths:
             schema:
               $ref: "#/components/schemas/Image"
       responses:
-        "200":
+        "204":
           description: photo group changed successfully
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -618,6 +657,14 @@ paths:
       responses:
         "200":
           description: message commented successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  messageId:
+                    $ref: "#/components/schemas/Identifier"
+                required:
+                  - messageId
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -636,8 +683,37 @@ paths:
       parameters:
         - $ref: "#/components/parameters/messageId"
       responses:
-        "200":
+        "204":
             description: reaction removed successfully
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+  
+  /messages/{messageId}/read:
+    put:
+      tags:
+        - Messages
+      summary: notify that the message has been read
+      description: send a put request to notify the message with messageId has been read by user
+      operationId: readMessage
+      parameters:
+        - $ref: "#/components/parameters/messageId"
+      responses:
+        "200":
+          description: message status has been stored, return the message identifier
+          content:
+            application/json:
+              schema:
+                properties:
+                  messageId:
+                    $ref: "#/components/schemas/Identifier"
+                required:
+                  - messageId
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -664,8 +740,15 @@ components:
       schema:
         $ref: "#/components/schemas/Identifier"
     messageId:
-      description: identifier for a single messageId
+      description: identifier for a single message
       name: messageId
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Identifier"
+    userId:
+      description: identifier for a single user
+      name: userId
       in: path
       required: true
       schema:
@@ -721,7 +804,9 @@ components:
           type: string
           format: date-time
           example: "2024-12-23T09:00:00Z"
-          pattern: "^\\d{4}-\\d{2}-\\d{2}T-\\d{2}:\\d{2}:\\d{2}Z$"
+          pattern: '^\d{4}-\d{2}-\d{2}T-\d{2}:\d{2}:\d{2}Z$'
+          minLength: 20
+          maxLength: 20
         lastMessagePreview:
           description: snippet of the last message in coversation
           type: string
@@ -738,7 +823,7 @@ components:
       minLength: 1
       maxLength: 5000
       pattern: "^.*?$"
-      example: "I am the marvel jesus"
+      example: "heyb buddy!"
     MessageDetail:
       description: message information
       type: object
@@ -764,6 +849,8 @@ components:
           description: data and time of message
           type: string
           format: date-time
+          minLength: 20
+          maxLength: 20
         status:
           description: status od the message
           type: string
