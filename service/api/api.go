@@ -38,7 +38,7 @@ package api
 
 import (
 	"errors"
-	"github.com/theMANGOlorian/WASAtext/service/database"
+	"WASAtext/service/database"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 	"net/http"

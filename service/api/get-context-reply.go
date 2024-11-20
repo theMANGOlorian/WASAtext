@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/theMANGOlorian/WASAtext/service/api/reqcontext"
+	"WASAtext/service/api/reqcontext"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )

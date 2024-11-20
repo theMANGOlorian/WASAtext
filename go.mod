@@ -1,4 +1,4 @@
-module github.com/theMANGOlorian/WASAtext
+module WASAtext
 
 go 1.17
 
