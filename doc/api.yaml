@@ -7,7 +7,7 @@ info:
     easily stay in touch through your private chats or group discussion.
   version: "0.1"
 servers:
-  - url: http://localhost:6969
+  - url: http://localhost:3000
 
 tags:
   - name: "Login"
@@ -329,11 +329,7 @@ paths:
             Token to retrieve the next set of messages starting after this cursor.
             not required because you can get your first set of data (messages).
           schema:
-            type: string
-            example: "XXXXX-XXXXX-XXXXX"
-            minLength: 17
-            maxLength: 17
-            pattern: "^[a-zA-Z]{5}-[a-zA-Z]{5}-[a-zA-Z]{5}$"
+            $ref: "#/components/schemas/Identifier"
       tags:
         - Messages
       summary: list messages of a conversation
@@ -501,14 +497,14 @@ paths:
         content:
           application/json:
             schema:
-              description: needed a usernames to add a person in a group
+              description: needed a userId to add a person in a group
               type: object
               properties:
-                usernames:
-                  description: List of usernames to add in a group
+                userIds:
+                  description: List of user to add in a group
                   type: array
                   items:
-                    $ref: "#/components/schemas/Name"
+                    $ref: "#/components/schemas/Identifier"
                   minItems: 1
                   maxItems: 25
               required:
@@ -766,10 +762,10 @@ components:
       title: ID
       description: "A unique identifier for the user, in the specified format."
       type: string
-      pattern: "^[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}-[a-zA-Z0-9]{5}$"
+      pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
       minLength: 15
       maxLength: 15
-      example: "ABCDE-ABCDE-12345"
+      example: "123e4567-e89b-12d3-a456-426614174000"
     Image:
       title: Image
       description: Image binary format as a string
@@ -812,11 +808,19 @@ components:
           type: string
           maxLength: 50
           example: "hey buddy, How ..."
+        listOfUsers:
+          description: array of user (userId) in the conversation (you are excluded in the list)
+          type: array
+          items:
+            $ref: "#/components/schemas/Identifier"
+          minItems: 1
+          maxItems: 250
       required:
         - conversationId
         - conversationType
         - conversationName
         - photoProfileId
+        - listOfUsers
     Text:
       description: body of the message
       type: string
