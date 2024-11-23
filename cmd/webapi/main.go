@@ -91,7 +91,11 @@ func run() error {
 		logger.Debug("database stopping")
 		_ = dbconn.Close()
 	}()
-	db, err := database.New(dbconn)
+	// Path to the SQL file to create tables
+	sqlFilePath := "../../service/database/init-tables-db.sql"
+
+	// Initialize AppDatabase
+	db, err := database.New(dbconn, sqlFilePath)
 	if err != nil {
 		logger.WithError(err).Error("error creating AppDatabase")
 		return fmt.Errorf("creating AppDatabase: %w", err)

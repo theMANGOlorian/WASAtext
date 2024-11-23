@@ -34,13 +34,20 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 )
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
+	// prof example
 	GetName() (string, error)
 	SetName(name string) error
 
+	// My interfaces //
+	DoLogin(name string) (string, error) // trying to log in 
+
+	// special interface
 	Ping() error
 }
 
@@ -50,20 +57,32 @@ type appdbimpl struct {
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
-func New(db *sql.DB) (AppDatabase, error) {
+func New(db *sql.DB, sqlFilePath string) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
-	// Check if table exists. If not, the database is empty, and we need to create the structure
+	// Check if table exists
 	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
-	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
+	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("error checking table existence: %w", err)
+	}
+
+	// If the tables don't exist, apply migrations from the provided SQL file
+	if err == sql.ErrNoRows {
+		// Read the SQL file
+		sqlBytes, err := ioutil.ReadFile(sqlFilePath)
 		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
+			return nil, fmt.Errorf("error reading SQL file: %w", err)
 		}
+
+		// Execute SQL file content
+		_, err = db.Exec(string(sqlBytes))
+		if err != nil {
+			return nil, fmt.Errorf("error applying SQL migrations: %w", err)
+		}
+		log.Println("Database tables initialized")
 	}
 
 	return &appdbimpl{
