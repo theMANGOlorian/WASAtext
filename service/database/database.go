@@ -44,9 +44,9 @@ type AppDatabase interface {
 	GetName() (string, error)
 	SetName(name string) error
 
-	// My interfaces //
-	DoLogin(name string) (string, error) // trying to log in 
-
+	/* My interfaces */                                       // Remember: use Capital letter -> to set visibility
+	DoLogin(username string) (string, error)                  // trying to log in
+	SetMyUserName(id string, username string) (string, error) // change username
 	// special interface
 	Ping() error
 }
@@ -57,7 +57,7 @@ type appdbimpl struct {
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
-func New(db *sql.DB, sqlFilePath string) (AppDatabase, error) {
+func New(db *sql.DB, schemaFilePath string) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
@@ -72,7 +72,7 @@ func New(db *sql.DB, sqlFilePath string) (AppDatabase, error) {
 	// If the tables don't exist, apply migrations from the provided SQL file
 	if err == sql.ErrNoRows {
 		// Read the SQL file
-		sqlBytes, err := ioutil.ReadFile(sqlFilePath)
+		sqlBytes, err := ioutil.ReadFile(schemaFilePath)
 		if err != nil {
 			return nil, fmt.Errorf("error reading SQL file: %w", err)
 		}

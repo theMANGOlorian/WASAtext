@@ -24,13 +24,13 @@ executable during the build).
 package main
 
 import (
+	"WASAtext/service/api"
+	"WASAtext/service/database"
+	"WASAtext/service/globaltime"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"WASAtext/service/api"
-	"WASAtext/service/database"
-	"WASAtext/service/globaltime"
 	"github.com/ardanlabs/conf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -92,7 +92,7 @@ func run() error {
 		_ = dbconn.Close()
 	}()
 	// Path to the SQL file to create tables
-	sqlFilePath := "../../service/database/init-tables-db.sql"
+	sqlFilePath := "service/database/init-tables-db.sql"
 
 	// Initialize AppDatabase
 	db, err := database.New(dbconn, sqlFilePath)

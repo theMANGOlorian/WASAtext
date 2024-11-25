@@ -7,6 +7,9 @@ github.com/felixge/httpsnoop
 # github.com/gofrs/uuid v4.4.0+incompatible
 ## explicit
 github.com/gofrs/uuid
+# github.com/golang-jwt/jwt v3.2.2+incompatible
+## explicit
+github.com/golang-jwt/jwt
 # github.com/google/go-cmp v0.5.8
 ## explicit; go 1.13
 # github.com/google/uuid v1.6.0
