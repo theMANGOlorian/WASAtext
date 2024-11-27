@@ -63,7 +63,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusAccepted)
 
-			var responseBody setMyUserNameRequestBody
+			var responseBody setMyUserNameResponseBody
 			responseBody.Username = name
 			err = json.NewEncoder(w).Encode(responseBody)
 

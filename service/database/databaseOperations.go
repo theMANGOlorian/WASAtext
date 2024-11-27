@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/segmentio/ksuid"
@@ -17,8 +18,7 @@ func (db *appdbimpl) DoLogin(username string) (string, error) {
 		// Utente esiste già, restituisci l'ID trovato
 		return id, nil
 	}
-	if err != nil && err != sql.ErrNoRows {
-		// Error query
+	if !errors.Is(err, sql.ErrNoRows) {
 		return "", fmt.Errorf("error while checking username: %w", err)
 	}
 
