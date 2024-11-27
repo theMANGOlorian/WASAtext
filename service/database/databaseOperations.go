@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/segmentio/ksuid"
 )
 
 // Get userId, if user not exists then it will create
@@ -44,4 +45,14 @@ func (db *appdbimpl) SetMyUserName(id string, newUsername string) (string, error
 		return "", fmt.Errorf("error while updating username: %w", err)
 	}
 	return newUsername, nil
+}
+
+func (db *appdbimpl) SetMyPhoto(id string) (string, error) {
+
+	codeImg := ksuid.New().String()
+	_, err := db.c.Exec("UPDATE users SET photo = ? WHERE id = ?", codeImg, id)
+	if err != nil {
+		return "", fmt.Errorf("error while updating photo profile: %w", err)
+	}
+	return codeImg, nil
 }

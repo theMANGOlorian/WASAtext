@@ -37,7 +37,7 @@ paths:
         and a unique identifier will be returned. If the user already exists, only the identifier 
         is returned, without creating a new account.
       operationId: doLogin
-      requestBody: 
+      requestBody:
         description: User's name is required for login or account creation.
         required: true
         content:
@@ -45,45 +45,31 @@ paths:
             schema:
               type: object
               description: "The username used for login or registration."
-              properties: 
+              properties:
                 username:
                   $ref: "#/components/schemas/Name"
               required:
                 - username
-        
+
       responses:
-        "200":
-          description: "User logged in successfully. The user already exists."
+        "201":
+          description: "User logged in successfully."
           content:
             application/json:
               schema:
                 description: "Returns the user's unique identifier."
                 type: object
-                properties: 
-                  identifier:
-                    $ref: "#/components/schemas/Identifier"
-                required:
-                  - identifier
-        "201":
-          description: "User account created and logged in successfully."
-          content:
-            application/json:
-              schema:
-                description: "Returns the new user's unique identifier."
-                type: object
-                properties: 
+                properties:
                   identifier:
                     $ref: "#/components/schemas/Identifier"
                 required:
                   - identifier
         "400":
           $ref: '#/components/responses/BadRequest'
-        "403":
-          $ref: '#/components/responses/Forbidden'
         "500":
           $ref: '#/components/responses/InternalServerError'
-      
-        
+
+
   /users/{userId}/username:
     put:
       tags:
@@ -95,50 +81,47 @@ paths:
       parameters:
         - $ref: "#/components/parameters/userId"
       requestBody:
-        description: "send the request with the new username" 
+        description: "send the request with the new username"
         required: true
         content:
           application/json:
             schema:
               description: "object with new username as a string"
               type: object
-              properties: 
+              properties:
                 username:
                   $ref: "#/components/schemas/Name"
               required:
                 - username
       responses:
         "202":
-          description: "username changed successfully" 
+          description: "username changed successfully"
           content:
             application/json:
               schema:
                 description: new Username
                 type: object
-                properties: 
+                properties:
                   username:
                     $ref: '#/components/schemas/Name'
                 required:
                   - username
         "400":
           $ref: '#/components/responses/BadRequest'
-        "403":
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "409":
           description: "Conflict: The new username is already taken."
           content:
-            application/json:
+            text/plain:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "username already taken"
-                required:
-                  - message
+                description: username already taken
+                type: string
+                example: "username already taken"
+
         "500":
           $ref: '#/components/responses/InternalServerError'
-  
+
   /users/{userId}/photoProfile:
     put:
       tags:
@@ -153,31 +136,32 @@ paths:
         required: true
         content:
           image/png:
-            schema: 
-              $ref: "#/components/schemas/Image"
-          image/jpeg:
             schema:
               $ref: "#/components/schemas/Image"
       responses:
-        "200":
+        "201":
           description: Profile photo updated successfully.
           content:
             application/json:
               schema:
+                description: Unique image code
                 type: object
                 properties:
-                  message:
+                  imageCode:
                     type: string
-                    example: "Profile photo updated successfully."
+                    minLength: 27
+                    maxLength: 27
+                    pattern: "^[0-9a-zA-Z]*?"
+                    example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
                 required:
-                  - message
+                  - imageCode
         "400":
           $ref: '#/components/responses/BadRequest'
-        "403":
-          $ref: '#/components/responses/Forbidden'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
   /users/{userId}/conversations:
     parameters:
       - $ref: "#/components/parameters/userId"
@@ -197,7 +181,7 @@ paths:
                 type: object
                 properties:
                   conversations:
-                    description: array of conversation with all associated informations 
+                    description: array of conversation with all associated informations
                     type: array
                     items:
                       $ref: "#/components/schemas/ConversationInfo"
@@ -231,7 +215,7 @@ paths:
           application/json:
             schema:
               description: need a name and a type of conversation
-              type: object 
+              type: object
               properties:
                 name:
                   $ref: "#/components/schemas/Name"
@@ -333,7 +317,7 @@ paths:
       tags:
         - Messages
       summary: list messages of a conversation
-      description: | 
+      description: |
         open a conversation to view all exchanged messages, displayed in reverse chronologial order.
         Each message include the timestamp, the content and the sender's username. and one/two checkmarks to indicate the status of sent messages.
       operationId: getConversation
@@ -367,8 +351,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
-  /conversations/{conversationId}/text: 
+
+  /conversations/{conversationId}/text:
     post:
       tags:
         - Messages
@@ -400,7 +384,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
 
-      
+
   /conversations/{conversationId}/image:
     post:
       tags:
@@ -415,7 +399,7 @@ paths:
         required: true
         content:
           image/png:
-            schema: 
+            schema:
               $ref: "#/components/schemas/Image"
           image/jpeg:
             schema:
@@ -427,7 +411,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageDetail"
-          
+
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -436,7 +420,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-  
+
   /messages/{messageId}/forward:
     post:
       tags:
@@ -460,8 +444,8 @@ paths:
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
-          $ref: '#/components/responses/InternalServerError'    
-  
+          $ref: '#/components/responses/InternalServerError'
+
   /messages/{messageId}:
     delete:
       tags:
@@ -482,7 +466,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-  
+
   /conversations/{conversationId}/member:
     put:
       tags:
@@ -533,7 +517,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
   /conversations/{conversationId}:
     delete:
       tags:
@@ -554,7 +538,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
   /conversations/{conversationId}/groupName:
     put:
       tags:
@@ -569,7 +553,7 @@ paths:
         content:
           application/json:
             schema:
-              description: a new group name 
+              description: a new group name
               type: object
               properties:
                 name:
@@ -595,7 +579,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
   /conversations/{conversationId}/groupPhoto:
     put:
       tags:
@@ -625,7 +609,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
   /messages/{messageId}/comment:
     put:
       tags:
@@ -680,7 +664,7 @@ paths:
         - $ref: "#/components/parameters/messageId"
       responses:
         "204":
-            description: reaction removed successfully
+          description: reaction removed successfully
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -689,7 +673,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-  
+
   /messages/{messageId}/read:
     put:
       tags:
@@ -718,7 +702,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-          
+
 components:
   parameters:
     photoId:
@@ -749,7 +733,7 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/Identifier"
-  schemas: 
+  schemas:
     Name:
       title: UserName/GroupName
       description: schema used to rappresent username or group name
@@ -769,7 +753,7 @@ components:
     Image:
       title: Image
       description: Image binary format as a string
-      type: string 
+      type: string
       format: binary
       minLength: 1
       maxLength: 20971520 # 20MB
@@ -785,7 +769,7 @@ components:
       properties:
         conversationId:
           $ref: "#/components/schemas/Identifier"
-        conversationType: 
+        conversationType:
           description: type of conversation
           type: string
           enum: [private,group]
@@ -848,7 +832,7 @@ components:
           type: integer
           example: 12345
         reply:
-          $ref: "#/components/schemas/Identifier" 
+          $ref: "#/components/schemas/Identifier"
         date:
           description: data and time of message
           type: string
@@ -907,24 +891,57 @@ components:
       required:
         - senderId
         - bodyMessage
-          
+
 
   responses:
     #400 class responses
     #400
     BadRequest:
       description: syntax of the request was not compliant with docs, check parameters
+      content:
+        text/plain:
+          schema:
+            description: bad request string message
+            type: string
+            example: Bad Request
+    #401
+    Unauthorized:
+      description: authorization missing or not valid
+      content:
+        text/plain:
+          schema:
+            description: Unauthorized string message
+            type: string
+            example: Unauthorized
     #403
     Forbidden:
       description: server will not accept request due to lacking of client permissions
+      content:
+        text/plain:
+          schema:
+            description: Forbidden string message
+            type: string
+            example: Forbidden
     #404
     NotFound:
       description: resource not found
+      content:
+        text/plain:
+          schema:
+            description: Not Found string message
+            type: string
+            example: Not found
 
     #500 class responses
     #500
     InternalServerError:
       description: the server encountered an error while processing the request
+      content:
+        text/plain:
+          schema:
+            description: Internal Server Error string message
+            type: string
+            example: Internal Server Error
 
   securitySchemes:
     TokenAuth:

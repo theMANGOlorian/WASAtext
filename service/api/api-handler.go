@@ -13,6 +13,7 @@ func (rt *_router) Handler() http.Handler {
 	/*WasaText routes*/
 	rt.router.POST("/session", rt.wrap(rt.doLogin))                     // doLogin
 	rt.router.PUT("/users/:userId/username", rt.wrap(rt.setMyUserName)) // setMyUserName
+	rt.router.PUT("/users/:userId/photoProfile", rt.wrap(rt.setMyPhoto))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 

@@ -47,6 +47,7 @@ type AppDatabase interface {
 	/* My interfaces */                                       // Remember: use Capital letter -> to set visibility
 	DoLogin(username string) (string, error)                  // trying to log in
 	SetMyUserName(id string, username string) (string, error) // change username
+	SetMyPhoto(id string) (string, error)                     // Change photo profile
 	// special interface
 	Ping() error
 }

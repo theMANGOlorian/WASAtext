@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) PRIMARY KEY,
     username VARCHAR(25) NOT NULL UNIQUE,
-    photo INTEGER UNIQUE, -- codice della foto ex: 123.png
+    photo VARCHAR(27) UNIQUE,
     CHECK (LENGTH(username) >= 3)
 );
 

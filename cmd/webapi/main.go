@@ -80,6 +80,25 @@ func run() error {
 
 	logger.Infof("application initializing")
 
+	// Print working directory
+	dir, err := os.Getwd()
+	if err != nil {
+		logger.Println("error: could not determine working directory:", err)
+	}
+	logger.Println("current working directory:", dir)
+
+	// Creating /tmp/WasaText/ directories
+	path := "/tmp/WasaText/images"
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create images directory: %w", err)
+	}
+	path = "/tmp/WasaText/database"
+	_ = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create database directory: %w", err)
+	}
+
 	// Start Database
 	logger.Println("initializing database support")
 	dbconn, err := sql.Open("sqlite3", cfg.DB.Filename)
@@ -92,10 +111,10 @@ func run() error {
 		_ = dbconn.Close()
 	}()
 	// Path to the SQL file to create tables
-	sqlFilePath := "service/database/init-tables-db.sql"
+	sqlSchemaFilePath := "service/database/init-tables-db.sql"
 
 	// Initialize AppDatabase
-	db, err := database.New(dbconn, sqlFilePath)
+	db, err := database.New(dbconn, sqlSchemaFilePath)
 	if err != nil {
 		logger.WithError(err).Error("error creating AppDatabase")
 		return fmt.Errorf("creating AppDatabase: %w", err)

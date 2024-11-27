@@ -9,13 +9,18 @@ type doLoginRequestBody struct {
 
 type doLoginResponseBody struct {
 	Identifier string `json:"identifier"`
-	Token      string `json:"token"`
 }
 
+/*SetMyUserName structs*/
 type setMyUserNameRequestBody struct {
 	Username string `json:"username"`
 }
 
 type setMyUserNameResponseBody struct {
 	Username string `json:"username"`
+}
+
+/*SetMyPhoto structs*/
+type setMyPhotoResponseBody struct {
+	ImageCode string `json:"imageCode"`
 }

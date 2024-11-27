@@ -2,7 +2,6 @@ package api
 
 import (
 	"WASAtext/service/api/reqcontext"
-	"WASAtext/service/api/utils"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
@@ -35,13 +34,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 
 				var doLoginResponseBody doLoginResponseBody
 				doLoginResponseBody.Identifier = id
-				token, err := utils.TokenGenerator(id)
-				if err != nil {
-					ctx.Logger.WithError(err).Error("Error: generating token")
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				doLoginResponseBody.Token = token
+
 				err = json.NewEncoder(w).Encode(doLoginResponseBody)
 
 				if err != nil {
