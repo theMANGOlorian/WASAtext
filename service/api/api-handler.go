@@ -11,9 +11,10 @@ func (rt *_router) Handler() http.Handler {
 	// rt.router.GET("/context", rt.wrap(rt.getContextReply))
 
 	/*WasaText routes*/
-	rt.router.POST("/session", rt.wrap(rt.doLogin))                     // doLogin
-	rt.router.PUT("/users/:userId/username", rt.wrap(rt.setMyUserName)) // setMyUserName
-	rt.router.PUT("/users/:userId/photoProfile", rt.wrap(rt.setMyPhoto))
+	rt.router.POST("/session", rt.wrap(rt.doLogin))                               // doLogin
+	rt.router.PUT("/users/:userId/username", rt.wrap(rt.setMyUserName))           // setMyUserName
+	rt.router.PUT("/users/:userId/photoProfile", rt.wrap(rt.setMyPhoto))          // setMyPhoto
+	rt.router.POST("/users/:userId/conversations", rt.wrap(rt.startConversation)) // startConversation
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 

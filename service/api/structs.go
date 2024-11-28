@@ -24,3 +24,12 @@ type setMyUserNameResponseBody struct {
 type setMyPhotoResponseBody struct {
 	ImageCode string `json:"imageCode"`
 }
+
+/*startConversation structs*/
+type startConversationRequestBody struct {
+	Name             string `json:"name"`
+	TypeConversation string `json:"typeConversation"`
+}
+type startConversationResponseBody struct {
+	Identifier string `json:"identifier"`
+}

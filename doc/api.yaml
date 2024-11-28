@@ -231,34 +231,17 @@ paths:
           content:
             application/json:
               schema:
-                description: "response have 3 field message from server, name and type convesation"
+                description: "response have 3 field message from server, name and type conversation"
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: "conversation started"
-                  name:
-                    $ref: "#/components/schemas/Name"
-                  typeConversation:
-                    type: string
-                    enum: [private,group]
+                  identifier:
+                    $ref: "#/components/schemas/Identifier"
                 required:
-                  - message
-                  - name
-                  - typeConversation
+                  - identifier
         "404":
-          description: "user not found"
-          content:
-            application/json:
-              schema:
-                description: "username not found because does not exist"
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "user not found"
-                required:
-                  - message
+          $ref: '#/components/responses/NotFound'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":

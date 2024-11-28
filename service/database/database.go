@@ -48,6 +48,9 @@ type AppDatabase interface {
 	DoLogin(username string) (string, error)                  // trying to log in
 	SetMyUserName(id string, username string) (string, error) // change username
 	SetMyPhoto(id string) (string, error)                     // Change photo profile
+	StartConversationPrivate(id string, friendName string) (string, error)
+	StartConversationGroup(id string, groupName string) (string, error)
+
 	// special interface
 	Ping() error
 }

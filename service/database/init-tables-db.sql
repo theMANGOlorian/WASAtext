@@ -6,12 +6,16 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS conversations (
+    ------------both (group & private)--------------
     id VARCHAR(36) PRIMARY KEY,
     type VARCHAR(7) NOT NULL,
+    --------------- group only ---------------------
     name VARCHAR(25),
     photo INTEGER,
+    --------------- private only -------------------
+    -- none
     CHECK (( type = 'private' AND name IS NULL AND photo IS NULL) OR 
-        (type = 'group' AND name IS NOT NULL AND photo IS NOT NULL )),
+        (type = 'group' AND name IS NOT NULL)),
     CHECK ( type IN ('private','group'))
 );
 
