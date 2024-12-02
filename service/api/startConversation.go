@@ -2,28 +2,23 @@ package api
 
 import (
 	"WASAtext/service/api/reqcontext"
+	"WASAtext/service/api/utils"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-	"strings"
 )
 
 func (rt *_router) startConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Authorization
 	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		ctx.Logger.Error("Error: Missing Authorization header")
-		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+
+	auth, err := utils.CheckAuthorizationField(authHeader)
+	if err != nil {
+		ctx.Logger.Error(err)
+		http.Error(w, "YOU SHALL NOT PASS", http.StatusUnauthorized)
 		return
 	}
-	const bearerPrefix = "Bearer "
-	if !strings.HasPrefix(authHeader, bearerPrefix) {
-		ctx.Logger.Error("Error: Invalid Authorization header")
-		http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
-		return
-	}
-	auth := strings.TrimPrefix(authHeader, bearerPrefix)
 
 	// checking permission
 	id := ps.ByName("userId")
@@ -39,8 +34,8 @@ func (rt *_router) startConversation(w http.ResponseWriter, r *http.Request, ps 
 		return
 	}
 
-	var requestBody startConversationRequestBody
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	var requestBody utils.StartConversationRequestBody
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: Decoding JSON ")
 		http.Error(w, "Cannot parse RequestBody", http.StatusBadRequest)
@@ -85,7 +80,7 @@ func (rt *_router) startConversation(w http.ResponseWriter, r *http.Request, ps 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	var responseBody startConversationResponseBody
+	var responseBody utils.StartConversationResponseBody
 	responseBody.Identifier = conversationId
 	err = json.NewEncoder(w).Encode(responseBody)
 	if err != nil {

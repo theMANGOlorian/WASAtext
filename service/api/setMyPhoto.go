@@ -2,30 +2,24 @@ package api
 
 import (
 	"WASAtext/service/api/reqcontext"
+	"WASAtext/service/api/utils"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
 )
 
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	// Authorization
 	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		ctx.Logger.Error("Error: Missing Authorization header")
-		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+	auth, err := utils.CheckAuthorizationField(authHeader)
+	if err != nil {
+		ctx.Logger.Error(err)
+		http.Error(w, "YOU SHALL NOT PASS", http.StatusUnauthorized)
 		return
 	}
-	const bearerPrefix = "Bearer "
-	if !strings.HasPrefix(authHeader, bearerPrefix) {
-		ctx.Logger.Error("Error: Invalid Authorization header")
-		http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
-		return
-	}
-	auth := strings.TrimPrefix(authHeader, bearerPrefix)
 
 	// checking permission
 	id := ps.ByName("userId")
@@ -76,7 +70,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	var responseBody setMyPhotoResponseBody
+	var responseBody utils.SetMyPhotoResponseBody
 	responseBody.ImageCode = imgCode
 	err = json.NewEncoder(w).Encode(responseBody)
 	if err != nil {

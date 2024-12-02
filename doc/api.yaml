@@ -14,8 +14,8 @@ tags:
     description: endpoints for loggin in action
   - name: "User"
     description: endpoints for users related operations
-  - name: "Conversations"
-    description: endpoints for conversations
+  - name: "Chats"
+    description: endpoints for private chats
   - name: "Messages"
     description: endpoints for messages
   - name: "Groups"
@@ -167,7 +167,7 @@ paths:
       - $ref: "#/components/parameters/userId"
     get:
       tags:
-        - Conversations
+        - Chats
       summary: Conversations list
       description: Get the list of conversations of a specific user
       operationId: getMyConversations
@@ -187,21 +187,17 @@ paths:
                       $ref: "#/components/schemas/ConversationInfo"
                     minItems: 0
                     maxItems: 250
-                  totalCount:
-                    description: Total number of conversations
-                    type: integer
                 required:
                   - conversations
-                  - totalCount
-        "400":
-          $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
         "500":
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - Conversations
+        - Chats
       summary: start a new conversation
       description: |
         used to create a new group or add new user in your conversation list
@@ -231,7 +227,7 @@ paths:
           content:
             application/json:
               schema:
-                description: "response have 3 field message from server, name and type conversation"
+                description: "response have 3 field message from server, name and type convesation"
                 type: object
                 properties:
                   identifier:
@@ -394,7 +390,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageDetail"
-
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -413,6 +408,19 @@ paths:
       operationId: forwardMessage
       parameters:
         - $ref: "#/components/parameters/messageId"
+      requestBody:
+        description: must specify the conversation to forward the message
+        required: true
+        content:
+          application/json:
+            schema:
+              description: need conversation ID
+              type: object
+              properties:
+                conversationId:
+                  $ref: "#/components/schemas/Identifier"
+              required:
+                - conversationId
       responses:
         "202":
           description: message forwarded successfully
@@ -758,10 +766,13 @@ components:
           enum: [private,group]
         conversationName:
           $ref: "#/components/schemas/Name"
-        photoProfileId:
-          description: "photo id (unique)"
-          type: integer
-          example: 12345
+        photoProfileCode:
+          description: "photo code (unique)"
+          type: string
+          minLength: 27
+          maxLength: 27
+          pattern: "^[0-9a-zA-Z]*?"
+          example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
         lastMessageTimeStamp:
           description: timestamp of the last message of conversation
           type: string
@@ -775,19 +786,19 @@ components:
           type: string
           maxLength: 50
           example: "hey buddy, How ..."
-        listOfUsers:
-          description: array of user (userId) in the conversation (you are excluded in the list)
-          type: array
-          items:
-            $ref: "#/components/schemas/Identifier"
-          minItems: 1
-          maxItems: 250
+      #        listOfUsers:
+      #          description: array of user (userId) in the conversation (you are excluded in the list)
+      #          type: array
+      #          items:
+      #            $ref: "#/components/schemas/Identifier"
+      #          minItems: 1
+      #          maxItems: 250
       required:
         - conversationId
         - conversationType
         - conversationName
         - photoProfileId
-        - listOfUsers
+    #        - listOfUsers
     Text:
       description: body of the message
       type: string

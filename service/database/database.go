@@ -31,6 +31,7 @@ Then you can initialize the AppDatabase and pass it to the api package.
 package database
 
 import (
+	"WASAtext/service/api/utils"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -50,7 +51,7 @@ type AppDatabase interface {
 	SetMyPhoto(id string) (string, error)                     // Change photo profile
 	StartConversationPrivate(id string, friendName string) (string, error)
 	StartConversationGroup(id string, groupName string) (string, error)
-
+	GetConversations(id string, r *utils.GetConversationsResponseBody) error
 	// special interface
 	Ping() error
 }

@@ -2,34 +2,25 @@ package api
 
 import (
 	"WASAtext/service/api/reqcontext"
+	"WASAtext/service/api/utils"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
-	"strings"
 )
 
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		ctx.Logger.Error("Error: Missing Authorization header")
-		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+	auth, err := utils.CheckAuthorizationField(authHeader)
+	if err != nil {
+		ctx.Logger.Error(err)
+		http.Error(w, "YOU SHALL NOT PASS", http.StatusUnauthorized)
 		return
 	}
-
-	const bearerPrefix = "Bearer "
-
-	if !strings.HasPrefix(authHeader, bearerPrefix) {
-		ctx.Logger.Error("Error: Invalid Authorization header")
-		http.Error(w, "Invalid Authorization header", http.StatusUnauthorized)
-		return
-	}
-
-	auth := strings.TrimPrefix(authHeader, bearerPrefix)
 
 	w.Header().Set("Content-Type", "application/json")
-	var requestBody setMyUserNameRequestBody
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	var requestBody utils.SetMyUserNameRequestBody
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		// Decoding JSON error
 		ctx.Logger.WithError(err).Error("Error: Decoding JSON ")
@@ -63,7 +54,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusAccepted)
 
-			var responseBody setMyUserNameResponseBody
+			var responseBody utils.SetMyUserNameResponseBody
 			responseBody.Username = name
 			err = json.NewEncoder(w).Encode(responseBody)
 

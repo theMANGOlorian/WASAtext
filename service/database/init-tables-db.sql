@@ -33,11 +33,11 @@ CREATE TABLE IF NOT EXISTS messages (
     text VARCHAR(5000),
     photo INTEGER,
     conversation VARCHAR(36) NOT NULL,
-    replay VARCHAR(36),
+    reply VARCHAR(36),
     status VARCHAR(4) NOT NULL,
     timestamp TEXT NOT NULL DEFAULT current_timestamp,
     FOREIGN KEY (conversation) REFERENCES conversations(id),
-    FOREIGN KEY (replay) REFERENCES messages(id),
+    FOREIGN KEY (reply) REFERENCES messages(id),
     CHECK ( status IN ('read','recv','none') ),
     CHECK ( type IN ('photo','text') ),
     CHECK ( (type = 'text' AND text IS NOT NULL AND photo IS NULL) OR 
