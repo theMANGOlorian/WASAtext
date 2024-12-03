@@ -55,3 +55,11 @@ type AddToGroupRequestBody struct {
 type AddToGroupResponseBody struct {
 	UserId string `json:"userId"`
 }
+
+/*setMyName structs*/
+type SetGroupNameRequestBody struct {
+	Name string `json:"name"`
+}
+type SetGroupNameResponseBody struct {
+	Name string `json:"name"`
+}
