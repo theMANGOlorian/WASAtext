@@ -52,6 +52,8 @@ type AppDatabase interface {
 	StartConversationPrivate(id string, friendName string) (string, error)
 	StartConversationGroup(id string, groupName string) (string, error)
 	GetConversations(id string, r *utils.GetConversationsResponseBody) error
+	AddToGroupPermission(userId string, groupId string) (int, error)
+	AddToGroup(friendId string, groupId string) (int, error)
 	// special interface
 	Ping() error
 }

@@ -16,6 +16,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/users/:userId/photoProfile", rt.wrap(rt.setMyPhoto))          // setMyPhoto
 	rt.router.POST("/users/:userId/conversations", rt.wrap(rt.startConversation)) // startConversation
 	rt.router.GET("/users/:userId/conversations", rt.wrap(rt.getConversations))   // getConversations
+	rt.router.PUT("/conversations/:conversationId/member", rt.wrap(rt.addToGroup))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 

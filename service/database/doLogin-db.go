@@ -13,7 +13,6 @@ func (db *appdbimpl) DoLogin(username string) (string, error) {
 	// Check if user exists
 	err := db.c.QueryRow("SELECT id FROM users WHERE username = ?", username).Scan(&id)
 	if err == nil {
-
 		return id, nil
 	}
 	if !errors.Is(err, sql.ErrNoRows) {

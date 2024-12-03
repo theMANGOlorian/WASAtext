@@ -475,37 +475,29 @@ paths:
               description: needed a userId to add a person in a group
               type: object
               properties:
-                userIds:
-                  description: List of user to add in a group
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/Identifier"
-                  minItems: 1
-                  maxItems: 25
+                userId:
+                  $ref: "#/components/schemas/Identifier"
               required:
-                - userIds
+                - userId
       responses:
-        "200":
+        "201":
           description: users added
           content:
             application/json:
               schema:
                 properties:
-                  usernames:
-                    description: List of user successfully added
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Name"
-                    minItems: 1
-                    maxItems: 25
+                  userId:
+                    $ref: "#/components/schemas/Identifier"
                 required:
-                  - usernames
+                  - userId
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
           $ref: '#/components/responses/Forbidden'
         "404":
           $ref: '#/components/responses/NotFound'
+        "409":
+          $ref: '#/components/responses/Conflict'
         "500":
           $ref: '#/components/responses/InternalServerError'
 
@@ -644,7 +636,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-  /messages/{messageId}/uncomment:
     delete:
       tags:
         - Comment
@@ -925,7 +916,15 @@ components:
             description: Not Found string message
             type: string
             example: Not found
-
+    #409
+    Conflict:
+      description: resource cause a conflict
+      content:
+        text/plain:
+          schema:
+            description: conflict string message
+            type: string
+            example: Conflict
     #500 class responses
     #500
     InternalServerError:

@@ -47,3 +47,11 @@ type Conversation struct {
 	LastMessageTimeStamp string `json:"lastMessageTimeStamp"`
 	LastMessagePreview   string `json:"lastMessagePreview"`
 }
+
+/*addToGroup structs*/
+type AddToGroupRequestBody struct {
+	UserId string `json:"userId"`
+}
+type AddToGroupResponseBody struct {
+	UserId string `json:"userId"`
+}
