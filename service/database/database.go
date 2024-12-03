@@ -56,6 +56,7 @@ type AppDatabase interface {
 	AddToGroup(friendId string, groupId string) (int, error)
 	LeaveGroup(userId string, groupId string) (int, error)
 	SetGroupName(userId string, groupId string, name string) (int, error)
+	SetGroupPhoto(userId string, groupId string) (string, int, error)
 	// special interface
 	Ping() error
 }

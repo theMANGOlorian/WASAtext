@@ -63,3 +63,7 @@ type SetGroupNameRequestBody struct {
 type SetGroupNameResponseBody struct {
 	Name string `json:"name"`
 }
+
+type SetGroupPhotoResponseBody struct {
+	ImageCode string `json:"imageCode"`
+}
