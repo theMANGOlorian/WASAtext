@@ -6,11 +6,11 @@ import (
 	"fmt"
 )
 
-const query1 = `SELECT 1 FROM users WHERE id = ? LIMIT 1`                              // controlla se esiste l'utente/amico
-const query2 = `SELECT 1 FROM conversations WHERE id = ? AND type = 'group' LIMIT 1`   // controlla se esiste la conversazione ed è un gruppo
-const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1` // controlla se l'utente fa parte del gruppo
-const query4 = `INSERT INTO members (userId,conversationId) VALUES (?,?)`              // aggiunge l'amico al gruppo
 func (db *appdbimpl) AddToGroupPermission(userId string, groupId string) (int, error) {
+	const query1 = `SELECT 1 FROM users WHERE id = ? LIMIT 1`
+	const query2 = `SELECT 1 FROM conversations WHERE id = ? AND type = 'group' LIMIT 1`
+	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
+
 	var exists int
 	err := db.c.QueryRow(query1, userId).Scan(&exists)
 	if err != nil {
@@ -40,6 +40,10 @@ func (db *appdbimpl) AddToGroupPermission(userId string, groupId string) (int, e
 }
 
 func (db *appdbimpl) AddToGroup(friendId string, groupId string) (int, error) {
+	const query1 = `SELECT 1 FROM users WHERE id = ? LIMIT 1`
+	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
+	const query4 = `INSERT INTO members (userId,conversationId) VALUES (?,?)`
+
 	var exists int
 	err := db.c.QueryRow(query1, friendId).Scan(&exists)
 	if err != nil {

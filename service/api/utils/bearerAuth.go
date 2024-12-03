@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"strings"
 )
 
@@ -16,8 +15,7 @@ func CheckAuthorizationField(authHeader string) (string, error) {
 		return "", fmt.Errorf("invalid Authorization header")
 	}
 	token := strings.TrimPrefix(authHeader, bearerPrefix)
-	_, err := uuid.Parse(token)
-	if err != nil {
+	if !CheckIdentifier(token) {
 		return "", fmt.Errorf("invalid Token")
 	}
 

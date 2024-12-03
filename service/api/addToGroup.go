@@ -10,8 +10,6 @@ import (
 
 func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	// devo verificare che l'utente che vuole aggiungere un nuovo membro deve appartenere al gruppo
-
 	authHeader := r.Header.Get("Authorization")
 	auth, err := utils.CheckAuthorizationField(authHeader)
 	if err != nil {
@@ -30,11 +28,6 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Cannot parse RequestBody", http.StatusBadRequest)
 		return
 	}
-	if len(requestBody.UserId) == 0 {
-		ctx.Logger.WithError(err).Error("Error: NOT EMPTY ")
-		http.Error(w, "NOT EMPTY", http.StatusBadRequest)
-		return
-	}
 
 	if !utils.CheckIdentifier(conversationId) {
 		ctx.Logger.WithError(err).Error("Error: conversationId not valid")
@@ -48,14 +41,14 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	errorCode, err := rt.db.AddToGroupPermission(auth, conversationId)
+	code, err := rt.db.AddToGroupPermission(auth, conversationId)
 	if err != nil {
-		if errorCode == 403 {
+		if code == 403 {
 			ctx.Logger.WithError(err).Error("User doesn't have permission to add someone in the group")
 			http.Error(w, "User doesn't have permission ", http.StatusForbidden)
 			return
 		}
-		if errorCode == 404 {
+		if code == 404 {
 			ctx.Logger.WithError(err).Error("group or user not found")
 			http.Error(w, "user or group not found", http.StatusNotFound)
 			return
@@ -66,14 +59,14 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 	//add users in group
 
-	errorCode, err = rt.db.AddToGroup(requestBody.UserId, conversationId)
+	code, err = rt.db.AddToGroup(requestBody.UserId, conversationId)
 	if err != nil {
-		if errorCode == 404 {
+		if code == 404 {
 			ctx.Logger.WithError(err).Error("user not found")
 			http.Error(w, "user not found", http.StatusNotFound)
 			return
 		}
-		if errorCode == 409 {
+		if code == 409 {
 			ctx.Logger.WithError(err).Error("user already exists")
 			http.Error(w, "user already exists", http.StatusConflict)
 			return
