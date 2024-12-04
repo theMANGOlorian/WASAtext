@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/segmentio/ksuid"
+	"strings"
 )
 
 func (db *appdbimpl) SetGroupPhoto(userId string, groupId string) (string, int, error) {
@@ -39,22 +40,21 @@ func (db *appdbimpl) SetGroupPhoto(userId string, groupId string) (string, int, 
 		}
 		return "", 500, err
 	}
+
 	codeImg := ksuid.New().String()
 	for {
-		err = db.c.QueryRow(query5, codeImg).Scan(&exists)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				break
-			}
+		_, err := db.c.Exec(query4, codeImg, groupId)
+		if err == nil {
+			break
+		}
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			codeImg = ksuid.New().String()
+		} else {
 			return "", 500, err
 		}
-		codeImg = ksuid.New().String()
+
 	}
 
-	_, err = db.c.Exec(query4, codeImg, groupId)
-	if err != nil {
-		return "", 500, err
-	}
 	return codeImg, 201, nil
 
 }

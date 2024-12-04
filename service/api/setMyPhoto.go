@@ -50,7 +50,7 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	const imagesPath = "/tmp/WasaText/images/"
+	const imagesPath = "/tmp/WasaText/images/users/"
 	osFile, err := os.Create(imagesPath + imgCode + ".png")
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: saving image")

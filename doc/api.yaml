@@ -356,6 +356,8 @@ paths:
                 $ref: "#/components/schemas/MessageDetail"
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
         "404":
@@ -558,6 +560,8 @@ paths:
                   - groupName
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
         "404":
@@ -588,6 +592,8 @@ paths:
           description: photo group changed successfully
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
         "404":
@@ -818,9 +824,9 @@ components:
           description: image content
           type: integer
           example: 12345
-        reply:
+        replyTo:
           $ref: "#/components/schemas/Identifier"
-        date:
+        timestamp:
           description: data and time of message
           type: string
           format: date-time

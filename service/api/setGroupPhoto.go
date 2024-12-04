@@ -49,7 +49,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		}
 		if code == 403 {
 			ctx.Logger.WithError(err).Error("Error: Operation forbidden")
-			http.Error(w, "Error: user/group not found", http.StatusForbidden)
+			http.Error(w, "Operation forbidden", http.StatusForbidden)
 			return
 		}
 		ctx.Logger.WithError(err).Error("An error occurred")
@@ -58,7 +58,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	}
 
-	const imagesPath = "/tmp/WasaText/images/"
+	const imagesPath = "/tmp/WasaText/images/groups/"
 	osFile, err := os.Create(imagesPath + codeImage + ".png")
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: saving image")

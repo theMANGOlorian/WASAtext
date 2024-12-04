@@ -1,10 +1,8 @@
 package database
 
 import (
-	"database/sql"
-	"errors"
-	"fmt"
 	"github.com/segmentio/ksuid"
+	"strings"
 )
 
 func (db *appdbimpl) SetMyPhoto(id string) (string, error) {
@@ -13,13 +11,15 @@ func (db *appdbimpl) SetMyPhoto(id string) (string, error) {
 	codeImg := ksuid.New().String()
 	for {
 		_, err := db.c.Exec(query1, codeImg, id)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				break
-			}
-			return "", fmt.Errorf("error while updating photo profile: %w", err)
+		if err == nil {
+			break
 		}
-		codeImg = ksuid.New().String()
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			codeImg = ksuid.New().String()
+		} else {
+			return "", err
+		}
+
 	}
 	return codeImg, nil
 }

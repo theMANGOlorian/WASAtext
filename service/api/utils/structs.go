@@ -64,6 +64,33 @@ type SetGroupNameResponseBody struct {
 	Name string `json:"name"`
 }
 
+/*setGroupPhoto structs*/
 type SetGroupPhotoResponseBody struct {
 	ImageCode string `json:"imageCode"`
+}
+
+/*setGroupPhoto structs*/
+type SendMessageRequestBody struct {
+	SenderId    string `json:"senderId"`
+	BodyMessage string `json:"bodyMessage"`
+	ReplyTo     string `json:"replyTo"`
+}
+
+type Reactions struct {
+	Emoji    string `json:"emoji"`
+	UserId   string `json:"userId"`
+	Username string `json:"username"`
+}
+
+type SendMessageResponseBody struct {
+	MessageId   string      `json:"messageId"`
+	SenderId    string      `json:"senderId"`
+	Username    string      `json:"username"`
+	Text        string      `json:"text"`
+	Image       string      `json:"image"`
+	ReplyTo     string      `json:"replyTo"`
+	Timestamp   string      `json:"timestamp"`
+	Status      string      `json:"status"`
+	TypeContent string      `json:"typeContent"`
+	Reactions   []Reactions `json:"reactions"`
 }

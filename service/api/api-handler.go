@@ -20,6 +20,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/conversations/:conversationId", rt.wrap(rt.leaveGroup))
 	rt.router.PUT("/conversations/:conversationId/groupName", rt.wrap(rt.setGroupName))
 	rt.router.PUT("/conversations/:conversationId/groupPhoto", rt.wrap(rt.setGroupPhoto))
+	rt.router.POST("/conversations/:conversationId/text", rt.wrap(rt.sendMessage))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 

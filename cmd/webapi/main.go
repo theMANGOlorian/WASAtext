@@ -88,10 +88,20 @@ func run() error {
 	logger.Println("current working directory:", dir)
 
 	// Creating /tmp/WasaText/ directories
-	path := "/tmp/WasaText/images"
+	path := "/tmp/WasaText/images/groups"
 	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("could not create images directory: %w", err)
+		return fmt.Errorf("could not create images/groups directory: %w", err)
+	}
+	path = "/tmp/WasaText/images/users"
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create images/users directory: %w", err)
+	}
+	path = "/tmp/WasaText/images/messages"
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("could not create images/messages directory: %w", err)
 	}
 	path = "/tmp/WasaText/database"
 	_ = os.MkdirAll(path, os.ModePerm)
