@@ -29,7 +29,5 @@ func (db *appdbimpl) DoLogin(username string) (string, error) {
 		if err == nil {
 			return newId, nil
 		}
-
-		//return "", fmt.Errorf("error while creating a new user: %w", err)
 	}
 }

@@ -78,7 +78,6 @@ type SendMessageRequestBody struct {
 
 type Reactions struct {
 	Emoji    string `json:"emoji"`
-	UserId   string `json:"userId"`
 	Username string `json:"username"`
 }
 
@@ -93,4 +92,22 @@ type SendMessageResponseBody struct {
 	Status      string      `json:"status"`
 	TypeContent string      `json:"typeContent"`
 	Reactions   []Reactions `json:"reactions"`
+}
+
+type Message struct {
+	MessageId   string      `json:"messageId"`
+	SenderId    string      `json:"senderId"`
+	Username    string      `json:"username"`
+	Text        string      `json:"text"`
+	Image       string      `json:"image"`
+	ReplyTo     string      `json:"replyTo"`
+	Timestamp   string      `json:"timestamp"`
+	Status      string      `json:"status"`
+	TypeContent string      `json:"typeContent"`
+	Reactions   []Reactions `json:"reactions"`
+}
+
+type GetConversationResponseBody struct {
+	Messages   []Message `json:"messages"`
+	NextCursor string    `json:"nextCursor"`
 }

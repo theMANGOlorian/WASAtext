@@ -59,6 +59,7 @@ type AppDatabase interface {
 	SetGroupPhoto(userId string, groupId string) (string, int, error)
 	SendMessage(userId string, conversationId string, text string, replyTo ...string) (int, *utils.SendMessageResponseBody, error)
 	SendImage(userId string, conversationId string) (int, *utils.SendMessageResponseBody, error)
+	GetConversation(userId string, conversationId string, limit int, cursor string) (*utils.GetConversationResponseBody, int, error)
 	// special interface
 	Ping() error
 }

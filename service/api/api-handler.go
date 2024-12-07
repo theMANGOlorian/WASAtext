@@ -22,6 +22,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/conversations/:conversationId/groupPhoto", rt.wrap(rt.setGroupPhoto))
 	rt.router.POST("/conversations/:conversationId/text", rt.wrap(rt.sendMessage))
 	rt.router.POST("/conversations/:conversationId/image", rt.wrap(rt.sendImage))
+	rt.router.GET("/conversations/:conversationId/messages", rt.wrap(rt.getConversation))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 
