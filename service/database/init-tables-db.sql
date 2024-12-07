@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS conversations (
     type VARCHAR(7) NOT NULL,
     --------------- group only ---------------------
     name VARCHAR(25),
-    photo INTEGER,
+    photo VARCHAR(27),
     --------------- private only -------------------
     -- none
     CHECK (( type = 'private' AND name IS NULL AND photo IS NULL) OR 
@@ -31,18 +31,17 @@ CREATE TABLE IF NOT EXISTS messages (
     id VARCHAR(36) PRIMARY KEY,
     type VARCHAR(5) NOT NULL,
     text VARCHAR(5000),
-    photo INTEGER,
+    photo VARCHAR(27) UNIQUE,
     conversation VARCHAR(36) NOT NULL,
     reply VARCHAR(36),
     status VARCHAR(4) NOT NULL,
-    timestamp TEXT NOT NULL DEFAULT current_timestamp,
+    timestamp TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (conversation) REFERENCES conversations(id),
     FOREIGN KEY (reply) REFERENCES messages(id),
     CHECK ( status IN ('read','recv','none') ),
     CHECK ( type IN ('photo','text') ),
     CHECK ( (type = 'text' AND text IS NOT NULL AND photo IS NULL) OR 
         ( type = 'photo' AND photo IS NOT NULL AND text IS NULL))
-
 );
 
 CREATE TABLE IF NOT EXISTS users_msg (

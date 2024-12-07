@@ -10,7 +10,8 @@ import (
 	"os"
 )
 
-func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) sendImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+
 	authHeader := r.Header.Get("Authorization")
 	auth, err := utils.CheckAuthorizationField(authHeader)
 	if err != nil {
@@ -20,7 +21,6 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	conversationId := ps.ByName("conversationId")
-
 	if !utils.CheckIdentifier(conversationId) {
 		ctx.Logger.WithError(err).Error("Error: conversationId not valid")
 		http.Error(w, "Error: conversationId not valid", http.StatusBadRequest)
@@ -40,7 +40,8 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	codeImage, code, err := rt.db.SetGroupPhoto(auth, conversationId)
+	code, response, err := rt.db.SendImage(auth, conversationId)
+
 	if err != nil {
 		if code == 404 {
 			ctx.Logger.WithError(err).Error("Error: user/group not found")
@@ -49,17 +50,16 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		}
 		if code == 403 {
 			ctx.Logger.WithError(err).Error("Error: Operation forbidden")
-			http.Error(w, "Operation forbidden", http.StatusForbidden)
+			http.Error(w, "Error: operation forbidden", http.StatusForbidden)
 			return
 		}
 		ctx.Logger.WithError(err).Error("An error occurred")
 		http.Error(w, "An error occurred", http.StatusInternalServerError)
 		return
-
 	}
 
 	const imagesPath = "/tmp/WasaText/images/"
-	osFile, err := os.Create(imagesPath + codeImage + ".png")
+	osFile, err := os.Create(imagesPath + response.Image + ".png")
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: saving image")
 		http.Error(w, "Error: saving image", http.StatusInternalServerError)
@@ -77,14 +77,13 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	var responseBody utils.SetMyPhotoResponseBody
-	responseBody.ImageCode = codeImage
-	err = json.NewEncoder(w).Encode(responseBody)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: encoding json ")
 		http.Error(w, "Error: writing response", http.StatusInternalServerError)
 		return
 	}
+
 	return
 
 }

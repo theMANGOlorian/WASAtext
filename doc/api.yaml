@@ -394,6 +394,8 @@ paths:
                 $ref: "#/components/schemas/MessageDetail"
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "403":
           $ref: '#/components/responses/Forbidden'
         "404":
@@ -588,8 +590,22 @@ paths:
             schema:
               $ref: "#/components/schemas/Image"
       responses:
-        "204":
-          description: photo group changed successfully
+        "201":
+          description: Profile photo updated successfully.
+          content:
+            application/json:
+              schema:
+                description: Unique image code
+                type: object
+                properties:
+                  imageCode:
+                    type: string
+                    minLength: 27
+                    maxLength: 27
+                    pattern: "^[0-9a-zA-Z]*?"
+                    example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
+                required:
+                  - imageCode
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -785,19 +801,13 @@ components:
           type: string
           maxLength: 50
           example: "hey buddy, How ..."
-      #        listOfUsers:
-      #          description: array of user (userId) in the conversation (you are excluded in the list)
-      #          type: array
-      #          items:
-      #            $ref: "#/components/schemas/Identifier"
-      #          minItems: 1
-      #          maxItems: 250
       required:
         - conversationId
         - conversationType
         - conversationName
         - photoProfileId
-    #        - listOfUsers
+        - lastMessageTimeStamp
+        - lastMessagePreview
     Text:
       description: body of the message
       type: string
@@ -821,9 +831,12 @@ components:
         text:
           $ref: "#/components/schemas/Text"
         image:
-          description: image content
-          type: integer
-          example: 12345
+          description: "photo code (unique)"
+          type: string
+          minLength: 27
+          maxLength: 27
+          pattern: "^[0-9a-zA-Z]*?"
+          example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
         replyTo:
           $ref: "#/components/schemas/Identifier"
         timestamp:
@@ -884,6 +897,7 @@ components:
       required:
         - senderId
         - bodyMessage
+        - replyTo
 
 
   responses:

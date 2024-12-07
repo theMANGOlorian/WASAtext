@@ -8,7 +8,7 @@ import (
 func (rt *_router) Handler() http.Handler {
 	// Default Routes (from template)
 	rt.router.GET("/", rt.getHelloWorld)
-	// rt.router.GET("/context", rt.wrap(rt.getContextReply))
+	rt.router.GET("/context", rt.wrap(rt.getContextReply))
 
 	/*WasaText routes*/
 	rt.router.POST("/session", rt.wrap(rt.doLogin))
@@ -21,6 +21,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/conversations/:conversationId/groupName", rt.wrap(rt.setGroupName))
 	rt.router.PUT("/conversations/:conversationId/groupPhoto", rt.wrap(rt.setGroupPhoto))
 	rt.router.POST("/conversations/:conversationId/text", rt.wrap(rt.sendMessage))
+	rt.router.POST("/conversations/:conversationId/image", rt.wrap(rt.sendImage))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 
