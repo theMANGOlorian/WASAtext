@@ -14,14 +14,14 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 	const query2 = `SELECT 1 FROM conversations WHERE id = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
 	const query4 = `
-		SELECT id, type, text, photo, reply, status, timestamp
-		FROM messages
+		SELECT m.id, m.sender, u.username ,m.type, m.text, m.photo, m.reply, m.status, timestamp
+		FROM messages m JOIN users u ON u.id = m.sender
 		WHERE conversation = ? AND timestamp < ?
 		ORDER BY timestamp DESC
 		LIMIT ?`
 	const query5 = `
-		SELECT id, type, text, photo, reply, status, timestamp
-		FROM messages
+		SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
+		FROM messages m JOIN users u ON u.id = m.sender
 		WHERE conversation = ?
 		ORDER BY timestamp DESC
 		LIMIT ?`
@@ -88,7 +88,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 		var image sql.NullString
 		var replyTo sql.NullString
 		var msg utils.Message
-		if err := rows.Scan(&msg.MessageId, &msg.TypeContent, &text, &image, &replyTo, &msg.Status, &msg.Timestamp); err != nil {
+		if err := rows.Scan(&msg.MessageId, &msg.SenderId, &msg.Username, &msg.TypeContent, &text, &image, &replyTo, &msg.Status, &msg.Timestamp); err != nil {
 			return nil, 500, err
 		}
 		if text.Valid {
@@ -116,7 +116,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 
 		for reactionsRows.Next() {
 			var reaction utils.Reactions
-			if err := reactionsRows.Scan(&reaction.Emoji, &reaction.Username); err != nil {
+			if err := reactionsRows.Scan(&reaction.Username, &reaction.Emoji); err != nil {
 				return nil, 500, err
 			}
 			reactions = append(reactions, reaction)

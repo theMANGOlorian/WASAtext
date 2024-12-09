@@ -113,9 +113,9 @@ func run() error {
 	}()
 	// Path to the SQL file to create tables
 	sqlSchemaFilePath := "service/database/init-tables-db.sql"
-
+	sqlTriggersFilePath := "service/database/triggers.sql"
 	// Initialize AppDatabase
-	db, err := database.New(dbconn, sqlSchemaFilePath)
+	db, err := database.New(dbconn, sqlSchemaFilePath, sqlTriggersFilePath)
 	if err != nil {
 		logger.WithError(err).Error("error creating AppDatabase")
 		return fmt.Errorf("creating AppDatabase: %w", err)

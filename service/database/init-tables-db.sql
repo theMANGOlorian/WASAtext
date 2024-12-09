@@ -29,12 +29,13 @@ CREATE TABLE IF NOT EXISTS members (
 
 CREATE TABLE IF NOT EXISTS messages (
     id VARCHAR(36) PRIMARY KEY,
+    sender VARCHAR(36) NOT NULL,
     type VARCHAR(5) NOT NULL,
     text VARCHAR(5000),
-    photo VARCHAR(27) UNIQUE,
+    photo VARCHAR(27),
     conversation VARCHAR(36) NOT NULL,
     reply VARCHAR(36),
-    status VARCHAR(4) NOT NULL,
+    status VARCHAR(4) DEFAULT 'none' NOT NULL,
     timestamp TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (conversation) REFERENCES conversations(id),
     FOREIGN KEY (reply) REFERENCES messages(id),
@@ -47,9 +48,11 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE TABLE IF NOT EXISTS users_msg (
     userId VARCHAR(36) NOT NULL,
     msgId VARCHAR(36) NOT NULL,
-    status VARCHAR(4) NOT NULL,
+    recv INTEGER DEFAULT 0,
+    read INTEGER DEFAULT 0,
     PRIMARY KEY (userId, msgId),
-    CHECK (status IN ('read','recv','none')),
+    CHECK (recv IN (0,1)),
+    CHECK (read IN (0,1)),
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (msgId) REFERENCES messages(id)
 );
@@ -59,6 +62,7 @@ CREATE TABLE IF NOT EXISTS reactions (
     owner VARCHAR(36) NOT NULL,
     messageId INTEGER NOT NULL,
     emoji TEXT NOT NULL,
-    CHECK (emoji IN ('😊','😂','😍','😎','🥺')),
+    CHECK (emoji IN ('😊','😂','😍','😎','😭')),
     UNIQUE(owner, messageId)
 );
+

@@ -15,7 +15,7 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 	const query1 = `SELECT username FROM users WHERE id = ? LIMIT 1`
 	const query2 = `SELECT 1 FROM conversations WHERE id = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
-	const query4 = `INSERT INTO messages(id, type, photo, conversation, status) VALUES (?,'photo',?,?,'none')`
+	const query4 = `INSERT INTO messages(id, sender ,type, photo, conversation, status) VALUES (?,?,'photo',?,?,'none')`
 	const query5 = `SELECT timestamp FROM messages WHERE id = ? LIMIT 1`
 	const query6 = `
 					SELECT 1
@@ -91,7 +91,7 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 			return 500, nil, err
 		}
 
-		_, err = tx.Exec(query4, messageId, codeImg, conversationId)
+		_, err = tx.Exec(query4, messageId, userId, codeImg, conversationId)
 		if err != nil && !(strings.Contains(err.Error(), "UNIQUE constraint failed")) {
 			return 500, nil, err
 		}

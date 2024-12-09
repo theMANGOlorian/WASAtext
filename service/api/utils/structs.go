@@ -71,7 +71,6 @@ type SetGroupPhotoResponseBody struct {
 
 /*setGroupPhoto structs*/
 type SendMessageRequestBody struct {
-	SenderId    string `json:"senderId"`
 	BodyMessage string `json:"bodyMessage"`
 	ReplyTo     string `json:"replyTo"`
 }
@@ -110,4 +109,12 @@ type Message struct {
 type GetConversationResponseBody struct {
 	Messages   []Message `json:"messages"`
 	NextCursor string    `json:"nextCursor"`
+}
+
+type ForwardMessageRequestBody struct {
+	ConversationId string `json:"conversationId"`
+}
+
+type CommentMessageRequestBody struct {
+	Reaction string `json:"reaction"`
 }

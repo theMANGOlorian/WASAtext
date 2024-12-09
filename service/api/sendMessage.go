@@ -33,11 +33,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Error: conversation ID not valid", http.StatusBadRequest)
 		return
 	}
-	if !utils.CheckIdentifier(requestBody.SenderId) || !(requestBody.SenderId == auth) {
-		ctx.Logger.WithError(err).Error("Error: sender ID not valid")
-		http.Error(w, "sender ID not valid, wrong format", http.StatusBadRequest)
-		return
-	}
+
 	if requestBody.ReplyTo != "" {
 		fmt.Println(requestBody.ReplyTo)
 		if !utils.CheckIdentifier(requestBody.ReplyTo) {
@@ -52,7 +48,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	code, response, err := rt.db.SendMessage(requestBody.SenderId, conversationId, requestBody.BodyMessage, requestBody.ReplyTo)
+	code, response, err := rt.db.SendMessage(auth, conversationId, requestBody.BodyMessage, requestBody.ReplyTo)
 	if err != nil {
 		if code == 404 {
 			ctx.Logger.WithError(err).Error("Error: user/group not found")

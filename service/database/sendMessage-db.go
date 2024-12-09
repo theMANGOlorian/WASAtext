@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/segmentio/ksuid"
 	"strings"
 )
 
@@ -19,7 +18,7 @@ func (db *appdbimpl) SendMessage(userId string, conversationId string, text stri
 	const query2 = `SELECT 1 FROM conversations WHERE id = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM messages WHERE id = ? AND conversation = ? LIMIT 1`
 	const query4 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
-	const query5 = `INSERT INTO messages(id, type, text, conversation,reply, status) VALUES (?,'text',?,?,?,'none')`
+	const query5 = `INSERT INTO messages(id, sender, type, text, conversation,reply, status) VALUES (?,?,'text',?,?,?,'none')`
 	const query6 = `SELECT timestamp FROM messages WHERE id = ? LIMIT 1`
 
 	if len(replyTo) > 1 {
@@ -69,12 +68,12 @@ func (db *appdbimpl) SendMessage(userId string, conversationId string, text stri
 
 	messageId := uuid.New().String()
 	for {
-		_, err = db.c.Exec(query5, messageId, text, conversationId, replyId)
+		_, err = db.c.Exec(query5, messageId, userId, text, conversationId, replyId)
 		if err == nil {
 			break
 		}
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			messageId = ksuid.New().String()
+			messageId = uuid.New().String()
 		} else {
 			return 500, nil, err
 		}

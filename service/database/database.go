@@ -60,6 +60,12 @@ type AppDatabase interface {
 	SendMessage(userId string, conversationId string, text string, replyTo ...string) (int, *utils.SendMessageResponseBody, error)
 	SendImage(userId string, conversationId string) (int, *utils.SendMessageResponseBody, error)
 	GetConversation(userId string, conversationId string, limit int, cursor string) (*utils.GetConversationResponseBody, int, error)
+	GetPhoto(userId string, photoId string) (bool, error)
+	ReadMessage(userId string, messageId string) (int, error)
+	ForwardMessage(userId string, messageId string, toConversation string) (int, *utils.SendMessageResponseBody, error)
+	DeleteMessage(userId string, messageId string) (int, error)
+	CommentMessage(userId string, messageId string, reaction string) (int, error)
+	UncommentMessage(userId string, messageId string) (int, error)
 	// special interface
 	Ping() error
 }
@@ -70,7 +76,7 @@ type appdbimpl struct {
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
-func New(db *sql.DB, schemaFilePath string) (AppDatabase, error) {
+func New(db *sql.DB, schemaFilePath string, triggersFilePath string) (AppDatabase, error) {
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
@@ -95,7 +101,18 @@ func New(db *sql.DB, schemaFilePath string) (AppDatabase, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error applying SQL migrations: %w", err)
 		}
-		log.Println("Database tables initialized")
+
+		// Execute Trigger file content
+		triggerBytes, err := ioutil.ReadFile(triggersFilePath)
+		if err != nil {
+			log.Fatalf("Error reading triggers file: %v", err)
+		}
+		_, err = db.Exec(string(triggerBytes))
+		if err != nil {
+			log.Fatalf("Error applying triggers: %v", err)
+		}
+
+		log.Println("Database initialized")
 	}
 
 	return &appdbimpl{
