@@ -61,11 +61,12 @@ type AppDatabase interface {
 	SendImage(userId string, conversationId string) (int, *utils.SendMessageResponseBody, error)
 	GetConversation(userId string, conversationId string, limit int, cursor string) (*utils.GetConversationResponseBody, int, error)
 	GetPhoto(userId string, photoId string) (bool, error)
-	ReadMessage(userId string, messageId string) (int, error)
+	SetReadMessage(userId string, conversationId string) (int, error)
 	ForwardMessage(userId string, messageId string, toConversation string) (int, *utils.SendMessageResponseBody, error)
 	DeleteMessage(userId string, messageId string) (int, error)
 	CommentMessage(userId string, messageId string, reaction string) (int, error)
 	UncommentMessage(userId string, messageId string) (int, error)
+	SetRecvMessage(userId string, conversationId string) error
 	// special interface
 	Ping() error
 }

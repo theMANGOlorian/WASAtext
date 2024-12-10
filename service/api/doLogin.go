@@ -42,9 +42,6 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 					w.WriteHeader(http.StatusInternalServerError)
 					ctx.Logger.WithError(err).Error("Error: an error occurred during encoding response")
 					return
-				} else {
-					// no errors!
-					return
 				}
 			}
 		}

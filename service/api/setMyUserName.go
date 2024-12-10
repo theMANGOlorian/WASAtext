@@ -62,9 +62,6 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 				http.Error(w, "an error occurred", http.StatusInternalServerError)
 				ctx.Logger.WithError(err).Error("Error: an error occurred during encoding response")
 				return
-			} else {
-				// no errors!
-				return
 			}
 
 		}

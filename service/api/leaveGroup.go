@@ -37,5 +37,4 @@ func (rt *_router) leaveGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	w.WriteHeader(http.StatusNoContent)
-	return
 }

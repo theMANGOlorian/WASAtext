@@ -110,6 +110,11 @@ func (db *appdbimpl) GetConversations(userId string, r *utils.GetConversationsRe
 		conversations = append(conversations, conv)
 
 	}
+
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
 	r.Conversations = conversations
 	return nil
 }

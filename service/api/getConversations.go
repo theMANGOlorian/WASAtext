@@ -43,6 +43,4 @@ func (rt *_router) getConversations(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "Cannot encode JSON", http.StatusInternalServerError)
 	}
 
-	return
-
 }

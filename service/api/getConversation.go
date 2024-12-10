@@ -84,5 +84,10 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	return
+	err = rt.db.SetRecvMessage(auth, conversationId)
+	if err != nil {
+		ctx.Logger.WithError(err).Error("update received status")
+		http.Error(w, "An error occurred", http.StatusInternalServerError)
+		return
+	}
 }

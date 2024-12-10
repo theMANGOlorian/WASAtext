@@ -20,7 +20,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 
 	conversationId := ps.ByName("conversationId")
 
-	//verify requestBody
+	// verify requestBody
 	var requestBody utils.AddToGroupRequestBody
 	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
@@ -57,7 +57,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "an error occurred", http.StatusInternalServerError)
 		return
 	}
-	//add users in group
+	// add users in group
 
 	code, err = rt.db.AddToGroup(requestBody.UserId, conversationId)
 	if err != nil {
@@ -86,6 +86,4 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "encoding JSON", http.StatusInternalServerError)
 		return
 	}
-
-	return
 }

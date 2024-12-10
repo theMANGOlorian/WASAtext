@@ -1,18 +1,18 @@
 package database
 
-func (db *appdbimpl) ReadMessage(userId string, messageId string) (int, error) {
+func (db *appdbimpl) SetReadMessage(userId string, conversationId string) (int, error) {
 
-	const query1 = `SELECT EXISTS( SELECT 1 FROM messages WHERE messageId = ? AND userId = ?)`
-	const query2 = `UPDATE users_msg SET read = 1 WHERE userId = ? AND messageId = ?`
+	const query1 = `SELECT EXISTS( SELECT 1 FROM members WHERE conversationId = ? AND userId = ?)`
+	const query2 = `UPDATE members SET tsLastRead = datetime('now','localtime') WHERE userId = ? AND conversationId = ?`
 
 	var exists int
-	err := db.c.QueryRow(query1, messageId, userId).Scan(&exists)
+	err := db.c.QueryRow(query1, conversationId, userId).Scan(&exists)
 	if err != nil {
 		return 500, err
 	}
 
 	if exists == 1 {
-		_, err = db.c.Exec(query2, userId, messageId)
+		_, err = db.c.Exec(query2, userId, conversationId)
 		if err != nil {
 			return 500, err
 		}
@@ -20,6 +20,6 @@ func (db *appdbimpl) ReadMessage(userId string, messageId string) (int, error) {
 		return 404, nil
 	}
 
-	return 200, nil
+	return 204, nil
 
 }

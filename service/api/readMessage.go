@@ -16,14 +16,14 @@ func (rt *_router) readMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	messageId := ps.ByName("messageId")
-	if !utils.CheckIdentifier(messageId) {
+	conversationId := ps.ByName("conversationId")
+	if !utils.CheckIdentifier(conversationId) {
 		ctx.Logger.WithError(err).Error("Error: messageId not valid")
 		http.Error(w, "message ID not valid", http.StatusBadRequest)
 		return
 	}
 
-	code, err := rt.db.ReadMessage(auth, messageId)
+	code, err := rt.db.SetReadMessage(auth, conversationId)
 	if code == 500 {
 		ctx.Logger.Error(err)
 		http.Error(w, "an error occurred", http.StatusInternalServerError)
@@ -34,6 +34,6 @@ func (rt *_router) readMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
-	
+
 	w.WriteHeader(http.StatusOK)
 }

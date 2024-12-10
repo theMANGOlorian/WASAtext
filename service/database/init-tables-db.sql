@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS conversations (
 CREATE TABLE IF NOT EXISTS members (
     userId VARCHAR(36) NOT NULL,
     conversationId VARCHAR(36) NOT NULL,
+    joinDate TEXT DEFAULT (datetime('now','localtime')) NOT NULL,
+    tsLastRecv TEXT DEFAULT '0000-01-01 00:00:00' NOT NULL,
+    tsLastRead TEXT DEFAULT '0000-01-01 00:00:00' NOT NULL,
     PRIMARY KEY (userId,conversationId),
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (conversationId) REFERENCES conversations(id)
@@ -43,18 +46,6 @@ CREATE TABLE IF NOT EXISTS messages (
     CHECK ( type IN ('photo','text') ),
     CHECK ( (type = 'text' AND text IS NOT NULL AND photo IS NULL) OR 
         ( type = 'photo' AND photo IS NOT NULL AND text IS NULL))
-);
-
-CREATE TABLE IF NOT EXISTS users_msg (
-    userId VARCHAR(36) NOT NULL,
-    msgId VARCHAR(36) NOT NULL,
-    recv INTEGER DEFAULT 0,
-    read INTEGER DEFAULT 0,
-    PRIMARY KEY (userId, msgId),
-    CHECK (recv IN (0,1)),
-    CHECK (read IN (0,1)),
-    FOREIGN KEY (userId) REFERENCES users(id),
-    FOREIGN KEY (msgId) REFERENCES messages(id)
 );
 
 CREATE TABLE IF NOT EXISTS reactions (

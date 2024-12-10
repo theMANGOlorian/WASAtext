@@ -87,7 +87,4 @@ func (rt *_router) startConversation(w http.ResponseWriter, r *http.Request, ps 
 		ctx.Logger.WithError(err).Error("Error: Encoding JSON ")
 		http.Error(w, "Cannot encode JSON", http.StatusInternalServerError)
 	}
-
-	return
-
 }

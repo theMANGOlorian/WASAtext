@@ -74,6 +74,4 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Error: writing response", http.StatusInternalServerError)
 		return
 	}
-
-	return
 }

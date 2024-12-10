@@ -85,6 +85,4 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 		http.Error(w, "Error: writing response", http.StatusInternalServerError)
 		return
 	}
-	return
-
 }

@@ -680,7 +680,7 @@ paths:
         "500":
           $ref: '#/components/responses/InternalServerError'
 
-  /messages/{messageId}/read:
+  /conversations/{conversationId}/read:
     put:
       tags:
         - Messages

@@ -14,17 +14,28 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 	const query2 = `SELECT 1 FROM conversations WHERE id = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
 	const query4 = `
-		SELECT m.id, m.sender, u.username ,m.type, m.text, m.photo, m.reply, m.status, timestamp
-		FROM messages m JOIN users u ON u.id = m.sender
-		WHERE conversation = ? AND timestamp < ?
-		ORDER BY timestamp DESC
-		LIMIT ?`
+					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
+					FROM messages m
+					JOIN users u ON u.id = m.sender
+					JOIN members mb ON mb.conversationId = m.conversation
+					WHERE mb.userId = ? 
+						AND mb.conversationId = ? 
+						AND m.timestamp < ? 
+						AND m.timestamp >= mb.joinDate
+					ORDER BY timestamp DESC
+					LIMIT ?`
+
 	const query5 = `
-		SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
-		FROM messages m JOIN users u ON u.id = m.sender
-		WHERE conversation = ?
-		ORDER BY timestamp DESC
-		LIMIT ?`
+					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
+					FROM messages m
+					JOIN users u ON u.id = m.sender
+					JOIN members mb ON mb.conversationId = m.conversation
+					WHERE mb.userId = ? 
+						AND mb.conversationId = ? 
+						AND m.timestamp >= mb.joinDate
+					ORDER BY timestamp DESC
+					LIMIT ?`
+
 	const query6 = `SELECT u.username, r.emoji FROM reactions r, users u WHERE r.messageId = ? AND u.id = r.owner`
 	const query7 = `SELECT timestamp FROM messages WHERE id = ?`
 
@@ -55,7 +66,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 	var rows *sql.Rows // dichiarazione della variabile rows prima del blocco if/else
 
 	if cursor == "" {
-		rows, err = db.c.Query(query5, conversationId, limit)
+		rows, err = db.c.Query(query5, userId, conversationId, limit)
 		if err != nil && !(errors.Is(err, sql.ErrNoRows)) {
 			return nil, 500, err
 		}
@@ -66,7 +77,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 			return nil, 500, err
 		}
 
-		rows, err = db.c.Query(query4, conversationId, timeCursor, limit)
+		rows, err = db.c.Query(query4, userId, conversationId, timeCursor, limit)
 		if err != nil && !(errors.Is(err, sql.ErrNoRows)) {
 			return nil, 500, err
 		}
@@ -127,10 +138,25 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 		nextCursor = msg.MessageId
 	}
 
+	if err := rows.Err(); err != nil {
+		return nil, 500, err
+	}
+
 	response := utils.GetConversationResponseBody{
 		Messages:   messages,
 		NextCursor: nextCursor,
 	}
 
 	return &response, 200, nil
+}
+
+func (db *appdbimpl) SetRecvMessage(userId string, conversationId string) error {
+
+	// questa query chiama un trigger
+	const query1 = `UPDATE members SET tsLastRecv = datetime('now','localtime') WHERE userId = ? AND conversationId = ?`
+	_, err := db.c.Exec(query1, userId, conversationId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

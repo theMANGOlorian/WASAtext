@@ -78,6 +78,4 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		http.Error(w, "Error: writing response", http.StatusInternalServerError)
 		return
 	}
-	return
-
 }

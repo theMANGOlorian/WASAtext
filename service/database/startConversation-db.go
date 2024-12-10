@@ -10,11 +10,21 @@ import (
 
 func (db *appdbimpl) StartConversationPrivate(id string, friendName string) (string, error) {
 	// Inizia la transazione
-	tx, err := db.c.Begin()
+	tx, err := db.GetTx()
 	if err != nil {
 		return "", fmt.Errorf("error starting transaction: %w", err)
 	}
-	defer tx.Rollback() // Assicurati che venga fatto rollback in caso di errore
+
+	defer func() {
+		if err != nil {
+			// Se un errore è presente, esegui il rollback
+			rollbackErr := db.CloseTx(tx, false)
+			if rollbackErr != nil {
+				// In caso di errore durante il rollback, registriamo un errore
+				fmt.Println("Failed to rollback transaction:", rollbackErr)
+			}
+		}
+	}()
 
 	// Recupera l'ID dell'amico
 	var friendId string
@@ -67,21 +77,31 @@ func (db *appdbimpl) StartConversationPrivate(id string, friendName string) (str
 	}
 
 	// Se tutto è andato a buon fine, esegui il commit
-	if err := tx.Commit(); err != nil {
-		return "", fmt.Errorf("error committing transaction: %w", err)
+	err = db.CloseTx(tx, true)
+	if err != nil {
+		return "", err
 	}
-
 	// Restituisci l'ID della conversazione
 	return conversationId, nil
 }
 
 func (db *appdbimpl) StartConversationGroup(id string, groupName string) (string, error) {
 	// Inizia la transazione
-	tx, err := db.c.Begin()
+	tx, err := db.GetTx()
 	if err != nil {
 		return "", fmt.Errorf("error starting transaction: %w", err)
 	}
-	defer tx.Rollback() // Assicurati che venga fatto rollback in caso di errore
+
+	defer func() {
+		if err != nil {
+			// Se un errore è presente, esegui il rollback
+			rollbackErr := db.CloseTx(tx, false)
+			if rollbackErr != nil {
+				// In caso di errore durante il rollback, registriamo un errore
+				fmt.Println("Failed to rollback transaction:", rollbackErr)
+			}
+		}
+	}()
 
 	// Genera un nuovo ID per la conversazione
 	var conversationId string
@@ -109,8 +129,9 @@ func (db *appdbimpl) StartConversationGroup(id string, groupName string) (string
 	}
 
 	// Se tutte le operazioni sono andate a buon fine, esegui il commit
-	if err := tx.Commit(); err != nil {
-		return "", fmt.Errorf("error committing transaction: %w", err)
+	err = db.CloseTx(tx, true)
+	if err != nil {
+		return "", err
 	}
 
 	// Restituisci l'ID della conversazione

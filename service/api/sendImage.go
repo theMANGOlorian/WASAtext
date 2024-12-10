@@ -84,6 +84,4 @@ func (rt *_router) sendImage(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	return
-
 }
