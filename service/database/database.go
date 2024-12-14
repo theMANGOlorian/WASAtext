@@ -46,7 +46,7 @@ type AppDatabase interface {
 	SetName(name string) error
 
 	/* My interfaces */                                       // Remember: use Capital letter -> to set visibility
-	DoLogin(username string) (string, error)                  // trying to log in
+	DoLogin(username string) (string, string, error)          // trying to log in
 	SetMyUserName(id string, username string) (string, error) // change username
 	SetMyPhoto(id string) (string, error)                     // Change photo profile
 	StartConversationPrivate(id string, friendName string) (string, error)

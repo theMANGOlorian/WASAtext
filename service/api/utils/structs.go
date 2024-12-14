@@ -9,6 +9,8 @@ type DoLoginRequestBody struct {
 
 type DoLoginResponseBody struct {
 	Identifier string `json:"identifier"`
+	Username string `json:"username"`
+	PhotoCode string `json:"photoCode"`
 }
 
 /*SetMyUserName structs*/

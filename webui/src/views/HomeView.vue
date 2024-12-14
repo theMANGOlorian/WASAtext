@@ -48,9 +48,9 @@ export default {
 			</div>
 		</div>
 
-		<ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
+		<ErrorBox v-if="errormsg" :msg="errormsg"></ErrorBox>
 	</div>
 </template>
 
-<style>
+<style scoped>
 </style>

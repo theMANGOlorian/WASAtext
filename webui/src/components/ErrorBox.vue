@@ -11,4 +11,11 @@ export default {
 </template>
 
 <style>
+
+
+.alert {
+	margin-top: 50px;
+	width: 500px;
+}
+
 </style>

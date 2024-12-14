@@ -22,7 +22,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 						AND mb.conversationId = ? 
 						AND m.timestamp < ? 
 						AND m.timestamp >= mb.joinDate
-					ORDER BY timestamp DESC
+					ORDER BY timestamp ASC
 					LIMIT ?`
 
 	const query5 = `
@@ -33,7 +33,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 					WHERE mb.userId = ? 
 						AND mb.conversationId = ? 
 						AND m.timestamp >= mb.joinDate
-					ORDER BY timestamp DESC
+					ORDER BY timestamp ASC
 					LIMIT ?`
 
 	const query6 = `SELECT u.username, r.emoji FROM reactions r, users u WHERE r.messageId = ? AND u.id = r.owner`

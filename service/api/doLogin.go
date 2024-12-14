@@ -17,34 +17,35 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		ctx.Logger.WithError(err).Error("Error: Decoding JSON ")
 		http.Error(w, "Cannot parse RequestBody", http.StatusBadRequest)
 		return
-	} else {
-		// check Username field is > 0
-		if len(doLoginRequestBody.Username) == 0 {
-			ctx.Logger.WithError(err).Error("Error: username length  is zero")
-			http.Error(w, "username can not be empty", http.StatusBadRequest)
-		} else {
-			// there are no errors in the request
-			id, err := rt.db.DoLogin(doLoginRequestBody.Username)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				ctx.Logger.WithError(err).Error("Error: an error occurred during database operations")
-				return
-			} else {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusCreated)
+	}
 
-				var doLoginResponseBody utils.DoLoginResponseBody
-				doLoginResponseBody.Identifier = id
+	if !utils.CheckName(doLoginRequestBody.Username) {
+		ctx.Logger.WithError(err).Error("Error: username not valid")
+		http.Error(w, "username not valid, at least 3 characters and less then 26", http.StatusBadRequest)
+		return
+	}
 
-				err = json.NewEncoder(w).Encode(doLoginResponseBody)
+	id, photoCode , err := rt.db.DoLogin(doLoginRequestBody.Username)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Error("Error: an error occurred during database operations")
+		return
+	}
 
-				if err != nil {
-					w.WriteHeader(http.StatusInternalServerError)
-					ctx.Logger.WithError(err).Error("Error: an error occurred during encoding response")
-					return
-				}
-			}
-		}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	var doLoginResponseBody utils.DoLoginResponseBody
+	doLoginResponseBody.Identifier = id
+	doLoginResponseBody.Username = doLoginRequestBody.Username
+	doLoginResponseBody.PhotoCode = photoCode
+
+	err = json.NewEncoder(w).Encode(doLoginResponseBody)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		ctx.Logger.WithError(err).Error("Error: an error occurred during encoding response")
+		return
 	}
 
 }
