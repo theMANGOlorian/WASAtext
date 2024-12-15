@@ -12,10 +12,15 @@ export default {
             messages: [],
             newMessage: '',
             auth: '',
+            pollingInterval: null,
+            lastMessagesHash: null, // Salva l'hash della lista dei messaggi
         };
     },
     mounted() {
         this.auth = sessionStorage.getItem('Auth');
+        if (this.conversation) {
+            this.startPolling();
+        }
     },
 
     watch: {
@@ -24,13 +29,35 @@ export default {
             handler(newConversation) {
                 if (newConversation) {
                     this.fetchMessages(newConversation.conversationId);
+                    this.startPolling();
                 } else {
+                    this.stopPolling();
                     this.messages = [];
+                    this.lastMessagesHash = null;
                 }
             },
         },
     },
+
+    beforeDestroy() {
+        this.stopPolling(); // Ferma il polling quando il componente viene distrutto
+    },
+    
     methods: {
+        startPolling() {
+            this.stopPolling(); // Evita duplicati
+            this.pollingInterval = setInterval(() => {
+                this.fetchMessages(this.conversation.conversationId);
+            }, 5000); // Ogni 5 secondi
+        },
+
+        stopPolling() {
+            if (this.pollingInterval) {
+                clearInterval(this.pollingInterval);
+                this.pollingInterval = null;
+            }
+        },
+
         async fetchMessages(conversationId) {
             try {
                 const response = await this.$axios.get(`/conversations/${conversationId}/messages`, {
@@ -42,35 +69,53 @@ export default {
                         cursor: '',
                     },
                 });
-                this.messages = response.data.messages;
-                for (let message of this.messages) {
-                    if (message.typeContent === 'photo') {
-                        await this.GetImages(message);
-                    }
+
+                const newMessages = response.data.messages;
+                const newHash = this.computeMessagesHash(newMessages);
+
+                // Controlla se ci sono modifiche nei messaggi
+                if (newHash !== this.lastMessagesHash) {
+                    this.lastMessagesHash = newHash;
+                    this.updateMessages(newMessages);
                 }
             } catch (error) {
                 console.error('Errore nel caricamento dei messaggi:', error.message);
             }
         },
+
+        updateMessages(newMessages) {
+            this.messages = newMessages;
+            for (let message of this.messages) {
+                if (message.typeContent === 'photo') {
+                    this.GetImages(message);
+                }
+            }
+        },
+
+        computeMessagesHash(messages) {
+            // Crea un hash semplificato basato sugli ID dei messaggi concatenati
+            return messages.map(msg => msg.messageId).join(',');
+        },
+
         async sendMessage() {
             if (!this.newMessage.trim()) return;
 
-            const message = {
-                text: this.newMessage,
-                timestamp: new Date().toISOString(),
-                senderId: this.auth,
-                typeContent: 'text',
-            };
-
             try {
-                const response = await this.$axios.post(`/conversations/${this.conversation.conversationId}/text`, message, {
+                const response = await this.$axios.post(`/conversations/${this.conversation.conversationId}/text`, 
+                {
+                    bodyMessage: this.newMessage,
+                    replyTo: '',
+                },
+                {
                     headers: {
-                        Authorization: `Bearer ${sessionStorage.getItem('Auth')}`,
+                        Authorization: `Bearer ${this.auth}`,
                     },
                 });
                 this.messages.push(response.data.message);
                 this.newMessage = '';
                 this.scrollToBottom();
+
+                await this.fetchMessages(this.conversation.conversationId);
                 if (response.data.message.typeContent === 'image') {
                     await this.GetImages(response.data.message);
                 }
@@ -78,13 +123,43 @@ export default {
                 console.error('Errore durante l\'invio del messaggio:', error.message);
             }
         },
-        scrollToBottom() {
+
+        async sendPhoto(file) {
+            try {
+                if (file.type !== 'image/png') {
+                    this.ErrorMessage = "Only PNG images are allowed.";
+                    return;
+                }
+
+                let response = await this.$axios.post(`/conversations/${this.conversation.conversationId}/image`, file, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.auth}`,
+                        'Content-Type': 'image/png',
+                    },
+                });
+
+                await this.fetchMessages(this.conversation.conversationId);
+            } catch (error) {
+                console.error('Errore durante l\'invio della foto:', error.message);
+            }
+        },
+
+        handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.sendPhoto(file);
+            }
+        },
+
+        async scrollToBottom() {
             this.$nextTick(() => {
                 if (this.$refs.messageList) {
                     this.$refs.messageList.scrollTop = this.$refs.messageList.scrollHeight;
                 }
             });
         },
+
         formatDate(timestamp) {
             const options = {
                 year: 'numeric',
@@ -98,43 +173,39 @@ export default {
 
         async GetImages(message) {
             try {
-                // Recupera l'immagine dal server
                 let response = await this.$axios.get(`/images/${message.image}/photo`, {
                     headers: {
                         Authorization: `Bearer ${this.auth}`,
                     },
-                    responseType: 'blob',  // Imposta il tipo di risposta per immagini
+                    responseType: 'blob',
                 });
-                
-                // Crea un URL per l'immagine
+
                 const imageUrl = URL.createObjectURL(response.data);
-                
-                // Aggiorna il messaggio con l'URL dell'immagine
                 message.imageUrl = imageUrl;
-
-
             } catch (error) {
                 console.error('Errore nel recupero dell\'immagine:', error.message);
             }
         },
+
+        onImageClick() {
+            this.$refs.fileInput.click();
+        },
     },
 };
 </script>
+
 
 <template>
     <div class="chat-box">
         <div v-if="!conversation" class="no-conversation">
             <p>Select a conversation and start chatting. Your friends are waiting you!</p>
         </div>
-
         <div v-else class="conversation">
-
             <div ref="messageList" class="message-list">
                 <div
                     v-for="message in messages"
                     :key="message.messageId"
-                    class="message-item"
-                >
+                    class="message-item"                >
                     <div :class="{'sent': message.senderId === this.auth, 'received': message.senderId !== this.auth}">
                         <p class="sender-name">{{ message.username }}</p>
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
@@ -143,7 +214,6 @@ export default {
                     </div>
                 </div>
             </div>
-
             <footer class="message-input">
                 <input
                     v-model="newMessage"
@@ -152,13 +222,15 @@ export default {
                     @keyup.enter="sendMessage"
                 />
                 <button class="send-message-button" @click="sendMessage">Send</button>
-                <button class="load-image-button" @click="loadImage">+</button>
+                <button class="load-image-button" @click="onImageClick">+</button>
+                <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
             </footer>
         </div>
     </div>
 </template>
 
 <style scoped>
+
 .chat-box {
     display: flex;
     flex-direction: column;
@@ -175,11 +247,19 @@ export default {
     font-size: 1.2em;
 }
 
+.conversation {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Aggiunge l'altezza al contenitore della conversazione */
+}
+
 
 .message-list {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
+    max-height: 70vh;   
+    margin-bottom: 10px; 
 }
 
 .message-item {

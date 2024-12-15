@@ -64,7 +64,7 @@ export default {
                         Authorization: `Bearer ${this.Identifier}`,
                         "Content-Type": "image/png",
                     },
-                })
+                });
 
                 this.PhotoURL = URL.createObjectURL(file);
                 sessionStorage.setItem("PhotoProfile", response.data.imageCode);
@@ -135,7 +135,7 @@ export default {
             <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
             <div class="name" @click="onNameClick">
                 <h1 v-if="!isEditingName">{{ Username }}</h1>
-                <input v-else type="text" class="nameInput" v-model="newName" @blur="handleNameChange" /> <!-- @blur: perdita di focus -->
+                <input v-else type="text" class="nameInput" v-model="newName" @blur="handleNameChange" /> 
                 <span v-if="!isEditingName" class="edit">Edit</span>
             </div>
             

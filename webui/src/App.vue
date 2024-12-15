@@ -11,17 +11,24 @@
 	</header>
   
 	<RouterView />
-  </template>
-  
-  <script setup>
-	import { RouterLink, RouterView } from 'vue-router'
-  </script>
-  
-  <script>
-  export default {}
-  </script>
-  
-  <style>
+</template>
 
-  </style>
+<script setup>
+import { RouterLink, RouterView } from 'vue-router'
+</script>
+
+<script>
+export default {}
+</script>
+
+<style>
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; /* Assicura che l'intera pagina prenda tutta l'altezza */
+    overflow: hidden; /* Impedisce lo scrolling dell'intera pagina */
+}
+
+</style>
   

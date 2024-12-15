@@ -94,7 +94,7 @@ export default {
     text-align: center;
     font-size: 20px;
     border: none;
-    border-bottom: solid 2px rgb(79, 10, 107);
+    border-bottom: solid 2px rgb(44, 109, 1);
     outline: none;
     transition: 0.9s ease;
 }

@@ -75,7 +75,6 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {

@@ -30,6 +30,7 @@ export default {
 </template>
 
 <style scoped>
+
 .webchat-container {
     display: flex;
     height: 100vh;
