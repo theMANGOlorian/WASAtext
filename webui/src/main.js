@@ -7,6 +7,7 @@ import LoadingSpinner from './components/LoadingSpinner.vue'
 import GoToButton from './components/GoToButton.vue';
 import conversationBox from './components/ConversationBox.vue';
 import ChatBox from './components/ChatBox.vue';
+import ContextMenu from './components/ContextMenu.vue'
 
 import './assets/dashboard.css'
 import './assets/main.css'
@@ -18,5 +19,6 @@ app.component("LoadingSpinner", LoadingSpinner);
 app.component("GoToButton", GoToButton);
 app.component("ConversationBox", conversationBox);
 app.component("ChatBox",ChatBox);
+app.component("ContextMenu", ContextMenu);
 app.use(router);
 app.mount('#app');

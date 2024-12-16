@@ -29,6 +29,7 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/messages/:messageId", rt.wrap(rt.deleteMessage))
 	rt.router.PUT("/messages/:messageId/comment", rt.wrap(rt.commentMessage))
 	rt.router.DELETE("/messages/:messageId/comment", rt.wrap(rt.uncommentMessage))
+	rt.router.GET("/users", rt.wrap(getUsers))
 	// Special routes (from template)
 	rt.router.GET("/liveness", rt.liveness)
 

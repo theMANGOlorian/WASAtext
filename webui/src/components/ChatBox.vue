@@ -14,6 +14,9 @@ export default {
             auth: '',
             pollingInterval: null,
             lastMessagesHash: null, // Salva l'hash della lista dei messaggi
+            selectedMessage: null,
+            emojiMenuVisible: false, // Per la seconda ContextMenu
+            emojiList: ["😊", "😂", "😍", "😎", "😭"],
         };
     },
     mounted() {
@@ -21,6 +24,7 @@ export default {
         if (this.conversation) {
             this.startPolling();
         }
+        document.addEventListener('click', this.handleClickOutside);
     },
 
     watch: {
@@ -41,6 +45,7 @@ export default {
 
     beforeDestroy() {
         this.stopPolling(); // Ferma il polling quando il componente viene distrutto
+        document.removeEventListener('click', this.handleClickOutside);
     },
     
     methods: {
@@ -73,7 +78,7 @@ export default {
                 const newMessages = response.data.messages;
                 const newHash = this.computeMessagesHash(newMessages);
 
-                // Controlla se ci sono modifiche nei messaggi
+                // controlla se ci sono modifiche nei messaggi
                 if (newHash !== this.lastMessagesHash) {
                     this.lastMessagesHash = newHash;
                     this.updateMessages(newMessages);
@@ -93,9 +98,12 @@ export default {
         },
 
         computeMessagesHash(messages) {
-            // Crea un hash semplificato basato sugli ID dei messaggi concatenati
-            return messages.map(msg => msg.messageId).join(',');
+            return messages.map(msg => {
+                const reactionsHash = msg.reactions ? msg.reactions.map(reaction => `${reaction.emoji}-${reaction.userId}`).join(',') : '';
+                return `${msg.messageId}-${msg.text || ''}-${reactionsHash}`;
+            }).join('|');
         },
+
 
         async sendMessage() {
             if (!this.newMessage.trim()) return;
@@ -190,6 +198,98 @@ export default {
         onImageClick() {
             this.$refs.fileInput.click();
         },
+
+        handleClickOutside(event) {
+            this.$refs.contextMenu.closeMenu();
+        },
+
+        onMessageClick(event, message) {
+            event.preventDefault(); // previene il menu del browser
+            let options = ['Reply','Forward','React'];
+            
+            if (message.reactions && message.reactions.length > 0) {
+                const userReaction = message.reactions.find(reaction => reaction.owner === this.auth);
+                if (userReaction) {
+                    options.push('Unreact');
+                }
+            }
+            if (this.auth === message.senderId) {
+                options.push('Delete')
+            }
+
+            this.selectedMessage = message;
+            this.$refs.contextMenu.openMenu(event.clientX, event.clientY, options);
+        },
+
+        onContextMenuOptionClick(option) {
+            if (option === 'Delete') {
+                this.deleteMessage(this.selectedMessage.messageId);
+            } else if (option === 'Reply') {
+                console.log('Rispondi al messaggio.');
+            } else if (option === 'Forward') {
+                console.log('Inoltra il messaggio.');
+            } else if (option === 'React') {
+                this.showEmojiMenu();
+            } else if (option === 'Unreact') {
+                this.removeReaction();
+            }
+        },
+
+        showEmojiMenu() {
+            const { x, y } = this.$refs.contextMenu.getMenuPosition();
+            this.$refs.emojiMenu.openMenu(x, y, this.emojiList);
+        },
+
+        onEmojiSelect(emoji) {
+            this.reactMessage(emoji),
+            // Chiudi la ContextMenu dopo la selezione
+            this.$refs.emojiMenu.closeMenu();
+        },
+
+        async reactMessage(emoji) {
+            try {
+                const response = await this.$axios.put(`/messages/${this.selectedMessage.messageId}/comment`,
+                {
+                    "Reaction": emoji
+                }, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.auth}`,
+                    },
+                });
+                await this.fetchMessages(this.conversation.conversationId);
+            } catch (error) {
+                console.error('Errore durante l\'invio della reazione:', error.message);
+            }
+        },
+
+        async removeReaction() {
+            try {
+                const response = await this.$axios.delete(`/messages/${this.selectedMessage.messageId}/comment`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.auth}`,
+                    },
+                });
+                await this.fetchMessages(this.conversation.conversationId);
+            } catch (error) {
+                console.error('Errore durante la cancellazione della reazione', error.message);
+            }
+        },
+
+        async deleteMessage(messageId) {
+            try {
+                const response = await this.$axios.delete(`/messages/${messageId}`, 
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.auth}`,
+                    },
+                });
+                await this.fetchMessages(this.conversation.conversationId);
+            } catch (error) {
+                console.error('Errore durante la cancellazione del messaggio:', error.message);
+            }
+        } 
     },
 };
 </script>
@@ -206,10 +306,13 @@ export default {
                     v-for="message in messages"
                     :key="message.messageId"
                     class="message-item"                >
-                    <div :class="{'sent': message.senderId === this.auth, 'received': message.senderId !== this.auth}">
+                    <div :class="{'sent': message.senderId === this.auth, 'received': message.senderId !== this.auth}" @contextmenu="onMessageClick($event, message)">
                         <p class="sender-name">{{ message.username }}</p>
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
                         <img v-else-if="message.typeContent === 'photo'" :src="message.imageUrl" alt="Image" class="message-image" />
+                        <div class="reactions-container">
+                            <span v-for="reaction in message.reactions" class="reactions">{{ reaction.emoji }}</span>
+                        </div>
                         <span class="message-time">{{ formatDate(message.timestamp) }}</span>
                     </div>
                 </div>
@@ -226,6 +329,8 @@ export default {
                 <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
             </footer>
         </div>
+        <ContextMenu ref="contextMenu" @option-click="onContextMenuOptionClick" />
+        <ContextMenu ref="emojiMenu" @option-click="onEmojiSelect" />
     </div>
 </template>
 
@@ -236,6 +341,7 @@ export default {
     flex-direction: column;
     height: 100%;
     background-color: #f9f9f9;
+    background-image: url("../assets/images/background.png");
 }
 
 .no-conversation {
@@ -243,29 +349,28 @@ export default {
     justify-content: center;
     align-items: center;
     height: 100%;
-    color: #aaa;
-    font-size: 1.2em;
+    color: #000000;
+    font-size: 1.4em;
 }
 
 .conversation {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Aggiunge l'altezza al contenitore della conversazione */
+    height: 93.7%; 
+    overflow: hidden;
 }
 
 
 .message-list {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; 
     padding: 10px;
-    max-height: 70vh;   
-    margin-bottom: 10px; 
 }
 
 .message-item {
     margin: 10px 0;
     display: flex; 
-    flex-direction: column;  /* Allinea verticalmente il contenuto */
+    flex-direction: column;
 }
 
 .sent,
@@ -274,17 +379,17 @@ export default {
     border-radius: 10px;
     max-width: 70%;
     display: flex;
-    flex-direction: column;  /* Allinea verticalmente il contenuto */
+    flex-direction: column; 
 }
 
 .sent {
     align-self: flex-end;
-    background-color: #1edb0548;
+    background-color: #46e631c7;
 }
 
 .received {
     align-self: flex-start;
-    background-color: #dddddd7e;
+    background-color: #fffafaea;
 }
 
 .message-text {
@@ -301,16 +406,21 @@ export default {
     font-size: 0.8em;
     color: #888;
     text-align: right;
-    margin-top: 5px; /* Spazio tra l'immagine/testo e l'orario */
-    display: block;  /* Forza l'orario su una nuova riga */
+    margin-top: 5px; 
+    display: block;  
 }
 
 
 .message-input {
     display: flex;
+    align-items: center; 
     padding: 10px;
     border-top: 1px solid #ddd;
+    background-color: #ffffff;
+    width: 100%;
+    box-sizing: border-box; 
 }
+
 
 .message-input input {
     flex: 1;
@@ -349,4 +459,16 @@ export default {
     padding: 10px 20px;
 }
 
+.reactions-container {
+    width: fit-content;
+    background-color: rgba(235, 235, 235, 0.692);
+    padding: 1px; 
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.reactions {
+    margin: 0 1px;
+    font-size: 1.3em;
+}
 </style>

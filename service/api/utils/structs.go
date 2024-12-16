@@ -80,6 +80,7 @@ type SendMessageRequestBody struct {
 type Reactions struct {
 	Emoji    string `json:"emoji"`
 	Username string `json:"username"`
+	Owner 	 string `json:"owner"`
 }
 
 type SendMessageResponseBody struct {
@@ -119,4 +120,8 @@ type ForwardMessageRequestBody struct {
 
 type CommentMessageRequestBody struct {
 	Reaction string `json:"reaction"`
+}
+
+type UsersListResponseBody struct {
+	Users []string `json:"users"`
 }

@@ -26,6 +26,7 @@ type WebAPIConfiguration struct {
 	Debug bool
 	DB    struct {
 		Filename string `conf:"default:/tmp/WasaText/database/wasatext.db"`
+		BusyTimeout int    `conf:"default:5000"`
 	}
 }
 

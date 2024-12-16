@@ -36,7 +36,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 					ORDER BY timestamp ASC
 					LIMIT ?`
 
-	const query6 = `SELECT u.username, r.emoji FROM reactions r, users u WHERE r.messageId = ? AND u.id = r.owner`
+	const query6 = `SELECT u.username, r.emoji, r.owner FROM reactions r, users u WHERE r.messageId = ? AND u.id = r.owner`
 	const query7 = `SELECT timestamp FROM messages WHERE id = ?`
 
 	var exists int
@@ -127,7 +127,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 
 		for reactionsRows.Next() {
 			var reaction utils.Reactions
-			if err := reactionsRows.Scan(&reaction.Username, &reaction.Emoji); err != nil {
+			if err := reactionsRows.Scan(&reaction.Username, &reaction.Emoji, &reaction.Owner); err != nil {
 				return nil, 500, err
 			}
 			reactions = append(reactions, reaction)
