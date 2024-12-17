@@ -67,6 +67,7 @@ type AppDatabase interface {
 	CommentMessage(userId string, messageId string, reaction string) (int, error)
 	UncommentMessage(userId string, messageId string) (int, error)
 	SetRecvMessage(userId string, conversationId string) error
+	GetUsersList(userId string) (*[]string, error)
 	// special interface
 	Ping() error
 }

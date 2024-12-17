@@ -688,7 +688,7 @@ paths:
       description: send a put request to notify the message with messageId has been read by user
       operationId: readMessage
       parameters:
-        - $ref: "#/components/parameters/messageId"
+        - $ref: "#/components/parameters/conversationId"
       responses:
         "200":
           description: message status has been stored, return the message identifier
@@ -708,6 +708,33 @@ paths:
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
+  
+  /users:
+    get:
+      tags:
+        - User
+      summary: List of users
+      description: Retrieve a list of all Wasatext users (excluding yourself).
+      operationId: getUsers
+      responses:
+        "200":
+          description: List of all users (excluding yourself).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Name"
+                required:
+                  - users
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalServerError'
+
 
 components:
   parameters:
