@@ -17,6 +17,8 @@ export default {
             selectedMessage: null,
             emojiMenuVisible: false, // Per la seconda ContextMenu
             emojiList: ["😊", "😂", "😍", "😎", "😭"],
+            replyTo: null,
+            highlightedMessageId: null
         };
     },
     mounted() {
@@ -75,13 +77,19 @@ export default {
                     },
                 });
 
-                const newMessages = response.data.messages;
-                const newHash = this.computeMessagesHash(newMessages);
+                let newMessages = response.data.messages;
 
-                // controlla se ci sono modifiche nei messaggi
-                if (newHash !== this.lastMessagesHash) {
-                    this.lastMessagesHash = newHash;
-                    this.updateMessages(newMessages);
+                if (response.data.messages === null) {
+                    this.updateMessages([]);
+                    this.lastMessagesHash = null;
+                }else {
+                    const newHash = this.computeMessagesHash(newMessages);
+
+                    // controlla se ci sono modifiche nei messaggi
+                    if (newHash !== this.lastMessagesHash) {
+                        this.lastMessagesHash = newHash;
+                        this.updateMessages(newMessages);
+                    }
                 }
             } catch (error) {
                 console.error('Errore nel caricamento dei messaggi:', error.message);
@@ -112,23 +120,20 @@ export default {
                 const response = await this.$axios.post(`/conversations/${this.conversation.conversationId}/text`, 
                 {
                     bodyMessage: this.newMessage,
-                    replyTo: '',
+                    replyTo: this.replyTo.messageId,
                 },
                 {
                     headers: {
                         Authorization: `Bearer ${this.auth}`,
                     },
                 });
-                this.messages.push(response.data.message);
+                this.messages.push(response.data);
                 this.newMessage = '';
                 this.scrollToBottom();
-
+                this.replyTo = null;
                 await this.fetchMessages(this.conversation.conversationId);
-                if (response.data.message.typeContent === 'image') {
-                    await this.GetImages(response.data.message);
-                }
             } catch (error) {
-                console.error('Errore durante l\'invio del messaggio:', error.message);
+                console.error('Errore durante l\'invio del messaggio:', error.data);
             }
         },
 
@@ -225,7 +230,7 @@ export default {
             if (option === 'Delete') {
                 this.deleteMessage(this.selectedMessage.messageId);
             } else if (option === 'Reply') {
-                console.log('Rispondi al messaggio.');
+                this.replyTo = this.selectedMessage
             } else if (option === 'Forward') {
                 console.log('Inoltra il messaggio.');
             } else if (option === 'React') {
@@ -289,7 +294,49 @@ export default {
             } catch (error) {
                 console.error('Errore durante la cancellazione del messaggio:', error.message);
             }
-        } 
+        },
+        
+        truncateMessage(message, max) {
+            if (message.length > max) {
+                return message.substring(0, max) + '...';
+            }
+            return message;
+        },
+
+        scrollToMessage(targetMessageId) {
+            // Trova l'indice del messaggio nella lista
+            const messageIndex = this.messages.findIndex(
+                (message) => message.messageId === targetMessageId
+            );
+
+            if (messageIndex !== -1) {
+                // Recupera il riferimento del messaggio
+                const targetElement = this.$refs.messagesRefs[messageIndex];
+
+                if (targetElement) {
+                    // Scorri fino al messaggio selezionato
+                    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    // Applica la classe di evidenziazione temporanea
+                    this.highlightedMessageId = targetMessageId;
+
+                    // Rimuovi la classe dopo 1 secondo
+                    setTimeout(() => {
+                        this.highlightedMessageId = null;
+                    }, 1000);
+                }
+            }
+        },
+
+        getTextReplied(messageId) {
+            const targetMessage = this.messages.find(message => message.messageId === messageId);
+            if (targetMessage) {
+                return this.truncateMessage(targetMessage.text,20) || "Image";
+            } else {
+                console.log("Messaggio non trovato: getTextReplied")
+                return "";
+            }
+        }
     },
 };
 </script>
@@ -305,8 +352,14 @@ export default {
                 <div
                     v-for="message in messages"
                     :key="message.messageId"
+                    ref="messagesRefs"
                     class="message-item"                >
-                    <div :class="{'sent': message.senderId === this.auth, 'received': message.senderId !== this.auth}" @contextmenu="onMessageClick($event, message)">
+                    <div :class="{
+                            'sent': message.senderId === this.auth, 
+                            'received': message.senderId !== this.auth, 
+                            'highlighted': highlightedMessageId === message.messageId
+                        }" @contextmenu="onMessageClick($event, message)">
+                        <p v-if="message.replyTo != ''" @click="scrollToMessage(message.replyTo)" class="reply-message"> {{ getTextReplied(message.replyTo) }}</p>
                         <p class="sender-name">{{ message.username }}</p>
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
                         <img v-else-if="message.typeContent === 'photo'" :src="message.imageUrl" alt="Image" class="message-image" />
@@ -317,6 +370,7 @@ export default {
                     </div>
                 </div>
             </div>
+            <div class="reply-box" v-if="this.replyTo !== null"><span>Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
             <footer class="message-input">
                 <input
                     v-model="newMessage"
@@ -470,5 +524,23 @@ export default {
 .reactions {
     margin: 0 1px;
     font-size: 1.3em;
+}
+
+.reply-box {
+    background-color: rgba(206, 206, 206, 0.801);
+    width: fit-content;
+    padding: 10px 100px 10px 20px; /*padding: top dx bottom sx */
+    border-radius: 10px 10px 0 0;
+}
+
+.reply-message {
+    background-color: rgba(202, 226, 202, 0.658);
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+    cursor: pointer;
+}
+
+.highlighted {
+    background-color: #14e4ffb4 !important; 
 }
 </style>

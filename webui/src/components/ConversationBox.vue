@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="conversation-item">
+    <div class="new-conversation-container">
         <div class="conversation-details">
             <h3 class="name-chat">New conversation</h3>
             <!-- Bottoni per Private e Group -->
@@ -18,15 +18,30 @@
             </div>
             
             <div class="add-conversation-container">
-              <input 
-                  v-model="newConversationName"
-                  type="text"
-                  :placeholder="placeholderText"
-                  @keyup.enter="createConversation"
-                  class="conversation-input"
-              />
-              <button @click="createConversation" class="send-button">Start</button>
-          </div>
+                <input 
+                    v-model="newConversationName"
+                    type="text"
+                    :placeholder="placeholderText"
+                    @input="fetchUsersList"
+                    @keyup.enter="createConversation"
+                    @blur="closeDropdown"
+                    @focus="showAllUsers"
+                    class="conversation-input"
+                />
+                <button @click="createConversation" class="send-button">Start</button>
+
+                <!-- Dropdown con la lista utenti (solo per conversazioni private)-->
+                <ul v-if="filteredUsers.length && this.conversationSelected === 'private'" class="user-dropdown">
+                    <li 
+                        v-for="user in filteredUsers" 
+                        :key="user.id" 
+                        @click="selectUser(user)"
+                        class="user-item"
+                    >
+                        {{ user }}
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
     <!-- ciclo sulle conversazioni -->
@@ -61,6 +76,8 @@ export default {
           newConversationName: '',
           conversationsInterval: null,  // Intervallo per l'aggiornamento delle conversazioni
           previousHash: null, // Salva l'hash della lista di conversazioni
+          filteredUsers: [], // Lista utenti filtrata per il dropdown
+          debounceTimeout: null, // Timeout per debouncing
       };
   },
   mounted() {
@@ -83,6 +100,59 @@ export default {
       },
   },
   methods: {
+
+      async showAllUsers() {
+          try {
+              const response = await this.$axios.get('/users', {
+                  headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}` },
+              });
+
+              // L'API restituisce un array di stringhe
+              const allUsers = response.data.users || [];
+              this.filteredUsers = allUsers; // Mostra tutti gli utenti
+          } catch (error) {
+              console.error("Error fetching users:", error.message);
+          }
+      },
+
+      closeDropdown() {
+          setTimeout(() => {
+              this.filteredUsers = [];
+          }, 100); // Ritardo leggero per permettere il click sugli elementi
+      },
+
+      async fetchUsersList() {
+        // Blocca la chiamata se l'input è vuoto o troppo corto
+        if (this.newConversationName.trim().length < 2) {
+          this.filteredUsers = [];
+          return;
+        }
+
+        // Debounce per evitare troppe chiamate
+        clearTimeout(this.debounceTimeout);
+        this.debounceTimeout = setTimeout(async () => {
+          try {
+            const response = await this.$axios.get('/users', {
+              headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}` },
+            });
+
+            // L'API restituisce un array di stringhe
+            const allUsers = response.data.users || [];
+            this.filteredUsers = allUsers.filter(user =>
+              user.toLowerCase().includes(this.newConversationName.trim().toLowerCase())
+            );
+          } catch (error) {
+            console.error("Error fetching users:", error.message);
+          }
+        }, 300); // Debounce di 300ms
+      },
+
+      // Seleziona l'utente dal dropdown
+      selectUser(user) {
+        this.newConversationName = user;
+        this.filteredUsers = []; // Chiude il dropdown
+      },
+
       async createConversation() {
           if (this.newConversationName.trim()) {
             try {
@@ -95,6 +165,8 @@ export default {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}`, },
               });
               this.fetchConversations(); // Aggiorna le conversazioni dopo aver creato
+              this.newConversationName = ''; // Pulisce il campo input
+              this.filteredUsers = [];
             } catch (error) {
               this.ErrorMessage = error.response ? `Error: ${error.response.status} - ${error.response.data}` : "Unexpected error: " + error.message;
             }
@@ -178,6 +250,14 @@ export default {
 </script>
 
 <style scoped>
+.new-conversation-container {
+  display: flex; /* Usa flexbox per il layout orizzontale */
+  align-items: center; /* Allinea verticalmente al centro */
+  border-bottom: 1px solid #d0ccd1;
+  padding: 10px;
+  height: 110px;
+}
+
 .conversation-item {
 display: flex; /* Usa flexbox per il layout orizzontale */
 align-items: center; /* Allinea verticalmente al centro */
@@ -291,5 +371,38 @@ color: #888;
   background-color: #4caf50;
   color: white;
   border-color: #4caf50;
+}
+
+.add-conversation-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+  position: relative; /* Aggiunto per gestire la posizione assoluta del dropdown */
+}
+
+.user-dropdown {
+  list-style: none;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+  position: absolute;
+  width: 100%; /* Prende tutta la larghezza del contenitore padre */
+  z-index: 10;
+  top: 100%; /* Posiziona la lista appena sotto l'input */
+  left: 0; /* Allinea la lista con il lato sinistro dell'input */
+  margin: 0;
+  padding: 5px 0;
+}
+
+.user-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.user-item:hover {
+  background-color: #f1f1f1;
 }
 </style>
