@@ -243,7 +243,8 @@ export default {
                         },
                     }
                 );
-                console.log("Sei uscito dal gruppo con successo!", response.data);
+                this.$emit("leftGroup", null);
+                console.log("Sei uscito dal gruppo con successo!");
             } catch (error) {
                 console.error("Errore durante l'uscita dal gruppo:", error);
                 alert("Errore: impossibile uscire dal gruppo.");
@@ -252,7 +253,7 @@ export default {
 
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         // Rimuovi il listener per evitare memory leaks quando il componente è distrutto
         document.removeEventListener('click', this.handleClickOutside);
     },

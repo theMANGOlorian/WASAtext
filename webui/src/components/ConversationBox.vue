@@ -86,7 +86,7 @@ export default {
           this.fetchConversations();
       }, 5000);
   },
-  beforeDestroy() {
+  beforeUnmount() {
       // Pulisce l'intervallo quando il componente viene distrutto
       clearInterval(this.conversationsInterval);
   },

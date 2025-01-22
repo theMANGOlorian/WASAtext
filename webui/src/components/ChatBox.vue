@@ -45,12 +45,13 @@ export default {
         },
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.stopPolling(); // Ferma il polling quando il componente viene distrutto
         document.removeEventListener('click', this.handleClickOutside);
     },
     
     methods: {
+
         startPolling() {
             this.stopPolling(); // Evita duplicati
             this.pollingInterval = setInterval(() => {
@@ -166,6 +167,7 @@ export default {
         },
 
         async scrollToBottom() {
+            console.log("ScrollToBottom()");
             this.$nextTick(() => {
                 if (this.$refs.messageList) {
                     this.$refs.messageList.scrollTop = this.$refs.messageList.scrollHeight;
@@ -340,6 +342,10 @@ export default {
                 return "";
             }
         },
+
+        removeSelectedConversation() {
+            this.$emit('rmSelectedConversation', null);
+        },
     },
 };
 </script>
@@ -348,7 +354,7 @@ export default {
 <template>
     <div class="chat-box">
         <div v-if="conversation">
-            <ChatHeader :conversation="conversation" />    
+            <ChatHeader :conversation="conversation" v-on:leftGroup="removeSelectedConversation"/>    
         </div>
         <div v-if="!conversation" class="no-conversation">
             <p>Select a conversation and start chatting. Your friends are waiting you!</p>

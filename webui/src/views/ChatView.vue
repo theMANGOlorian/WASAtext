@@ -10,6 +10,10 @@ export default {
         handleConversationSelected(conversation) {
             this.selectedConversation = conversation;
         },
+
+        nullSelectedConversation() {
+            this.selectedConversation = null;
+        },
     },
     
 };
@@ -24,7 +28,7 @@ export default {
   
       <!-- Sezione principale per la chat selezionata -->
       <main class="chat-content">
-        <ChatBox :conversation="selectedConversation"></ChatBox>
+        <ChatBox :conversation="selectedConversation" v-on:rmSelectedConversation="nullSelectedConversation"></ChatBox>
       </main>
     </div>
 </template>
