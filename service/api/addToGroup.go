@@ -35,7 +35,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	if !utils.CheckIdentifier(requestBody.UserId) {
+	if !utils.CheckName(requestBody.Username) {
 		ctx.Logger.WithError(err).Error("Error: userId not valid")
 		http.Error(w, "userId not valid, wrong format", http.StatusBadRequest)
 		return
@@ -59,7 +59,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 	// add users in group
 
-	code, err = rt.db.AddToGroup(requestBody.UserId, conversationId)
+	code, err = rt.db.AddToGroup(requestBody.Username, conversationId)
 	if err != nil {
 		if code == 404 {
 			ctx.Logger.WithError(err).Error("user not found")
@@ -79,7 +79,7 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	var responseBody utils.AddToGroupResponseBody
-	responseBody.UserId = requestBody.UserId
+	responseBody.Username = requestBody.Username
 	err = json.NewEncoder(w).Encode(&responseBody)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("Error: Encoding JSON ")

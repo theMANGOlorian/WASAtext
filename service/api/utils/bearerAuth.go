@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"strings"
+	"log"
 )
 
 func CheckAuthorizationField(authHeader string) (string, error) {
@@ -11,12 +12,13 @@ func CheckAuthorizationField(authHeader string) (string, error) {
 	if authHeader == "" {
 		return "", fmt.Errorf("missing Authorization header")
 	}
-	if !strings.HasPrefix(authHeader, bearerPrefix) {
+	if !strings.Contains(authHeader, bearerPrefix) {
+		log.Println("AuthHeader: ",authHeader, "\nBearerPrefix:", bearerPrefix)
 		return "", fmt.Errorf("invalid Authorization header")
 	}
 	token := strings.TrimPrefix(authHeader, bearerPrefix)
 	if !CheckIdentifier(token) {
-		return "", fmt.Errorf("invalid Token")
+		return "", fmt.Errorf("invalid token")
 	}
 
 	return token, nil

@@ -1,16 +1,16 @@
 package utils
 
 import (
-	"github.com/google/uuid"
 	"regexp"
 )
 
 func CheckIdentifier(identifier string) bool {
-	_, err := uuid.Parse(identifier)
-	if err != nil {
-		return false
+	const pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+	re := regexp.MustCompile(pattern)
+	if re.MatchString(identifier) {
+		return true
 	}
-	return true
+	return false
 }
 
 func CheckName(name string) bool {

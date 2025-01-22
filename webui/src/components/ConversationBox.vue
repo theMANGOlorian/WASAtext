@@ -183,7 +183,7 @@ export default {
                   },
               });
 
-              const newConversations = response.data.conversations;
+              const newConversations = response.data.conversations || [];
               const newHash = this.computeHash(newConversations);
 
               if (this.previousHash !== newHash) {
@@ -194,7 +194,7 @@ export default {
                   });
               }
           } catch (error) {
-              this.ErrorMessage = error.response ? `Error: ${error.response.status} - ${error.response.data}` : "Unexpected error: " + error.message;
+              console.log("fetchConversation: " + error);
           }
       },
 
@@ -212,7 +212,7 @@ export default {
                   conversation.photoURL = defaultProfileImage;
               }
           } catch (error) {
-              this.ErrorMessage = error.response ? `Error: ${error.response.status} - ${error.response.data}` : "Unexpected error: " + error.message;
+              console.log("getPhotoConversation: " + error);
           }
       },
 

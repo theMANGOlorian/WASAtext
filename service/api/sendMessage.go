@@ -4,7 +4,6 @@ import (
 	"WASAtext/service/api/reqcontext"
 	"WASAtext/service/api/utils"
 	"encoding/json"
-	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
@@ -35,7 +34,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	if requestBody.ReplyTo != "" {
-		fmt.Println(requestBody.ReplyTo)
 		if !utils.CheckIdentifier(requestBody.ReplyTo) {
 			ctx.Logger.WithError(err).Error("Error: replyId not valid")
 			http.Error(w, "replyId not valid, wrong format", http.StatusBadRequest)

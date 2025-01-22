@@ -17,7 +17,7 @@ export default {
             selectedMessage: null,
             emojiMenuVisible: false, // Per la seconda ContextMenu
             emojiList: ["😊", "😂", "😍", "😎", "😭"],
-            replyTo: null,
+            replyTo: '',
             highlightedMessageId: null
         };
     },
@@ -77,8 +77,7 @@ export default {
                     },
                 });
 
-                let newMessages = response.data.messages;
-
+                let newMessages = response.data.messages || [];
                 if (response.data.messages === null) {
                     this.updateMessages([]);
                     this.lastMessagesHash = null;
@@ -114,13 +113,14 @@ export default {
 
 
         async sendMessage() {
-            if (!this.newMessage.trim()) return;
-
+            if (!this.newMessage || !this.newMessage.trim() === '') {
+                return;
+            };
             try {
                 const response = await this.$axios.post(`/conversations/${this.conversation.conversationId}/text`, 
                 {
                     bodyMessage: this.newMessage,
-                    replyTo: this.replyTo.messageId,
+                    replyTo: this.replyTo && this.replyTo.messageId ? this.replyTo.messageId : ""
                 },
                 {
                     headers: {
@@ -297,6 +297,9 @@ export default {
         },
         
         truncateMessage(message, max) {
+            if (!message) {
+                return '';
+            }
             if (message.length > max) {
                 return message.substring(0, max) + '...';
             }
@@ -336,7 +339,7 @@ export default {
                 console.log("Messaggio non trovato: getTextReplied")
                 return "";
             }
-        }
+        },
     },
 };
 </script>
@@ -344,6 +347,9 @@ export default {
 
 <template>
     <div class="chat-box">
+        <div v-if="conversation">
+            <ChatHeader :conversation="conversation" />    
+        </div>
         <div v-if="!conversation" class="no-conversation">
             <p>Select a conversation and start chatting. Your friends are waiting you!</p>
         </div>
@@ -359,7 +365,10 @@ export default {
                             'received': message.senderId !== this.auth, 
                             'highlighted': highlightedMessageId === message.messageId
                         }" @contextmenu="onMessageClick($event, message)">
-                        <p v-if="message.replyTo != ''" @click="scrollToMessage(message.replyTo)" class="reply-message"> {{ getTextReplied(message.replyTo) }}</p>
+                        <p v-if="message.replyTo != ''" @click="scrollToMessage(message.replyTo)" :class="{
+                            'sent-replied': message.senderId === this.auth,
+                            'received-replied': message.senderId !== this.auth
+                            }"> {{ getTextReplied(message.replyTo) }}</p>
                         <p class="sender-name">{{ message.username }}</p>
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
                         <img v-else-if="message.typeContent === 'photo'" :src="message.imageUrl" alt="Image" class="message-image" />
@@ -370,7 +379,7 @@ export default {
                     </div>
                 </div>
             </div>
-            <div class="reply-box" v-if="this.replyTo !== null"><span>Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
+            <div class="reply-box" v-if="this.replyTo !== null && this.replyTo !== ''"><span>Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
             <footer class="message-input">
                 <input
                     v-model="newMessage"
@@ -473,6 +482,7 @@ export default {
     background-color: #ffffff;
     width: 100%;
     box-sizing: border-box; 
+    margin-bottom: 3.4em;
 }
 
 
@@ -533,8 +543,14 @@ export default {
     border-radius: 10px 10px 0 0;
 }
 
-.reply-message {
-    background-color: rgba(202, 226, 202, 0.658);
+.received-replied {
+    background-color: rgba(178, 236, 150, 0.658);
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+    cursor: pointer;
+}
+.sent-replied {
+    background-color: rgba(255, 255, 255, 0.658);
     border-radius: 5px 5px 0 0;
     text-align: center;
     cursor: pointer;

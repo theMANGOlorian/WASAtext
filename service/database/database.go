@@ -53,7 +53,7 @@ type AppDatabase interface {
 	StartConversationGroup(id string, groupName string) (string, error)
 	GetConversations(id string, r *utils.GetConversationsResponseBody) error
 	AddToGroupPermission(userId string, groupId string) (int, error)
-	AddToGroup(friendId string, groupId string) (int, error)
+	AddToGroup(username string, groupId string) (int, error)
 	LeaveGroup(userId string, groupId string) (int, error)
 	SetGroupName(userId string, groupId string, name string) (int, error)
 	SetGroupPhoto(userId string, groupId string) (string, int, error)

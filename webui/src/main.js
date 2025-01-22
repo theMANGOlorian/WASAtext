@@ -8,6 +8,7 @@ import GoToButton from './components/GoToButton.vue';
 import conversationBox from './components/ConversationBox.vue';
 import ChatBox from './components/ChatBox.vue';
 import ContextMenu from './components/ContextMenu.vue'
+import ChatHeader from './components/ChatHeader.vue'
 
 import './assets/dashboard.css'
 import './assets/main.css'
@@ -20,5 +21,6 @@ app.component("GoToButton", GoToButton);
 app.component("ConversationBox", conversationBox);
 app.component("ChatBox",ChatBox);
 app.component("ContextMenu", ContextMenu);
+app.component("ChatHeader", ChatHeader);
 app.use(router);
 app.mount('#app');

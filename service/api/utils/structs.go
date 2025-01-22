@@ -52,10 +52,10 @@ type Conversation struct {
 
 /*addToGroup structs*/
 type AddToGroupRequestBody struct {
-	UserId string `json:"userId"`
+	Username string `json:"username"`
 }
 type AddToGroupResponseBody struct {
-	UserId string `json:"userId"`
+	Username string `json:"username"`
 }
 
 /*setMyName structs*/

@@ -39,13 +39,14 @@ func (db *appdbimpl) AddToGroupPermission(userId string, groupId string) (int, e
 	return 200, nil
 }
 
-func (db *appdbimpl) AddToGroup(friendId string, groupId string) (int, error) {
-	const query1 = `SELECT 1 FROM users WHERE id = ? LIMIT 1`
+func (db *appdbimpl) AddToGroup(username string, groupId string) (int, error) {
+	const query1 = `SELECT id FROM users WHERE username = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
 	const query4 = `INSERT INTO members (userId,conversationId) VALUES (?,?)`
 
+	var friendId string
 	var exists int
-	err := db.c.QueryRow(query1, friendId).Scan(&exists)
+	err := db.c.QueryRow(query1, username).Scan(&friendId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 404, fmt.Errorf("friend not exists")
