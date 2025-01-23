@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/segmentio/ksuid"
+	"log"
 	"strings"
 )
 
@@ -60,7 +61,7 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 
 	tx, err := db.GetTx()
 	if err != nil || tx == nil {
-		return 500, nil, fmt.Errorf("failed to begin transaction: %v", err)
+		return 500, nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
@@ -69,7 +70,7 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 			rollbackErr := db.CloseTx(tx, false)
 			if rollbackErr != nil {
 				// In caso di errore durante il rollback, registriamo un errore
-				fmt.Println("Failed to rollback transaction:", rollbackErr)
+				log.Println("Failed to rollback transaction:", rollbackErr)
 			}
 		}
 	}()
@@ -84,7 +85,6 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 
 		err = tx.QueryRow(query6, codeImg, codeImg, codeImg).Scan(&exists)
 		if err == nil && exists == 1 {
-			violation = true
 			continue
 		}
 		if err != nil && !(errors.Is(err, sql.ErrNoRows)) {
@@ -98,7 +98,7 @@ func (db *appdbimpl) SendImage(userId string, conversationId string) (int, *util
 		if err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed") {
 			violation = true
 		}
-		if violation == false {
+		if !violation {
 			err = nil
 			err := db.CloseTx(tx, true)
 			if err != nil {

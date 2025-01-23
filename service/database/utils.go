@@ -10,7 +10,7 @@ func (db *appdbimpl) GetTx() (*sql.Tx, error) {
 	// Avvia una nuova transazione con db.c, che è il database connection pool
 	tx, err := db.c.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %v", err)
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	return tx, nil
 }

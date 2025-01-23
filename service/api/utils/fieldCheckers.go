@@ -7,10 +7,8 @@ import (
 func CheckIdentifier(identifier string) bool {
 	const pattern = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
 	re := regexp.MustCompile(pattern)
-	if re.MatchString(identifier) {
-		return true
-	}
-	return false
+	return re.MatchString(identifier) 
+
 }
 
 func CheckName(name string) bool {
@@ -25,11 +23,7 @@ func CheckName(name string) bool {
 func CheckPhotoId(photoId string) bool {
 	const pattern = "^[0-9a-zA-Z]*$"
 	re := regexp.MustCompile(pattern)
-	if re.MatchString(photoId) {
-		return true
-	}
-	return false
-
+	return re.MatchString(photoId)
 }
 
 func CheckReactions(reaction string) bool {

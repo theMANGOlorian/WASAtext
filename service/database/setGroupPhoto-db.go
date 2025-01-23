@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/segmentio/ksuid"
+	"log"
 )
 
 func (db *appdbimpl) SetGroupPhoto(userId string, groupId string) (string, int, error) {
@@ -55,7 +56,7 @@ func (db *appdbimpl) SetGroupPhoto(userId string, groupId string) (string, int, 
 
 	tx, err := db.GetTx()
 	if err != nil {
-		return "", 500, fmt.Errorf("failed to begin transaction: %v", err)
+		return "", 500, fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
@@ -64,7 +65,7 @@ func (db *appdbimpl) SetGroupPhoto(userId string, groupId string) (string, int, 
 			rollbackErr := db.CloseTx(tx, false)
 			if rollbackErr != nil {
 				// In caso di errore durante il rollback, registriamo un errore
-				fmt.Println("Failed to rollback transaction:", rollbackErr)
+				log.Println("Failed to rollback transaction:", rollbackErr)
 			}
 		}
 	}()

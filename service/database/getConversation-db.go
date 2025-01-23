@@ -132,6 +132,11 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 			}
 			reactions = append(reactions, reaction)
 		}
+
+		if err := reactionsRows.Err(); err != nil {
+			return nil, 500, err
+		}
+		
 		msg.Reactions = reactions
 
 		messages = append(messages, msg)

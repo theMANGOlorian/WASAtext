@@ -21,27 +21,28 @@
                     <button @click="updateGroupName">Save</button>
                 </div>
             </div>
-
-            <!-- Sezione destra: Bottoni per le azioni -->
-            <div v-if="showingUserList" class="user-list">
-                <!-- Ciclo sugli utenti per creare un elenco -->
-                <div 
-                    v-for="user in userList" 
-                    :key="user" 
-                    class="user-item" 
-                    @click="addUserToGroup(user)" >
-                    {{ user }}
+            <div v-if="isGroup">
+                <!-- Sezione destra: Bottoni per le azioni -->
+                <div v-if="showingUserList" class="user-list">
+                    <!-- Ciclo sugli utenti per creare un elenco -->
+                    <div 
+                        v-for="user in userList" 
+                        :key="user" 
+                        class="user-item" 
+                        @click="addUserToGroup(user)" >
+                        {{ user }}
+                    </div>
+                    <button @click="hideUserList" style="color: red;">Back</button>
                 </div>
-                <button @click="hideUserList">Back</button>
-            </div>
-            <div v-else>
-                <div class="menu-item" @click="addPerson">Add Member</div>
-                <div class="menu-item" @click="changeName">Change Name</div>
-                <div class="menu-item">
-                    <input type="file" accept="image/png" @change="handlePhotoChange" style="display: none;" ref="photoInput" />
-                    <button @click="triggerFileInput">Change Photo</button>
+                <div v-else>
+                    <div class="menu-item" @click="addPerson">Add Member</div>
+                    <div class="menu-item" @click="changeName">Change Name</div>
+                    <div class="menu-item">
+                        <input type="file" accept="image/png" @change="handlePhotoChange" style="display: none;" ref="photoInput" />
+                        <button @click="triggerFileInput">Change Photo</button>
+                    </div>
+                    <div class="menu-item" style="color: red;" @click="exitGroup">Exit Group</div>
                 </div>
-                <div class="menu-item" style="color: red;" @click="exitGroup">Exit Group</div>
             </div>
         </div>
     </header>
@@ -61,6 +62,7 @@ export default {
     data() {
         return {
             settingsMenuVisible: false, // Stato per la visibilità del menu delle impostazioni
+            isGroup: false,
             isEditingName: false,
             newGroupName: '',
             userList: [],
@@ -114,7 +116,14 @@ export default {
 
         // Toggle visibility della tendina
         toggleSettingsMenu() {
-            if (this.conversation.conversationType === 'group'){
+            if (this.conversation.conversationType === 'group' || this.conversation.conversationType === 'private'){
+
+                if (this.conversation.conversationType === 'group'){
+                    this.isGroup = true; 
+                } else {
+                    this.isGroup = false; 
+                }
+
                 this.settingsMenuVisible = !this.settingsMenuVisible;
 
                 if (this.settingsMenuVisible) {
@@ -350,4 +359,18 @@ export default {
 .menu-item:hover {
     background-color: #f0f0f0;
 }
+
+
+.user-item {
+    cursor: pointer;
+    font-size: 1.1em;
+    width: 100px;
+    text-align: center;
+}
+
+.user-item:hover{
+    color: green;
+    background-color: #e9e9e9;
+}
+
 </style>

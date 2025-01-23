@@ -9,8 +9,8 @@ type DoLoginRequestBody struct {
 
 type DoLoginResponseBody struct {
 	Identifier string `json:"identifier"`
-	Username string `json:"username"`
-	PhotoCode string `json:"photoCode"`
+	Username   string `json:"username"`
+	PhotoCode  string `json:"photoCode"`
 }
 
 /*SetMyUserName structs*/
@@ -80,7 +80,7 @@ type SendMessageRequestBody struct {
 type Reactions struct {
 	Emoji    string `json:"emoji"`
 	Username string `json:"username"`
-	Owner 	 string `json:"owner"`
+	Owner    string `json:"owner"`
 }
 
 type SendMessageResponseBody struct {

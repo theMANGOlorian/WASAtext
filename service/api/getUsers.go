@@ -32,5 +32,5 @@ func (rt *_router) getUsersList(w http.ResponseWriter, r *http.Request, ps httpr
 		http.Error(w, "An error occured", http.StatusInternalServerError)
 		return
 	}
-	
+
 }

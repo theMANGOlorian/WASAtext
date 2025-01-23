@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
 )
 
 func (db *appdbimpl) StartConversationPrivate(id string, friendName string) (string, error) {
@@ -21,7 +22,7 @@ func (db *appdbimpl) StartConversationPrivate(id string, friendName string) (str
 			rollbackErr := db.CloseTx(tx, false)
 			if rollbackErr != nil {
 				// In caso di errore durante il rollback, registriamo un errore
-				fmt.Println("Failed to rollback transaction:", rollbackErr)
+				log.Println("Failed to rollback transaction:", rollbackErr)
 			}
 		}
 	}()
@@ -98,7 +99,7 @@ func (db *appdbimpl) StartConversationGroup(id string, groupName string) (string
 			rollbackErr := db.CloseTx(tx, false)
 			if rollbackErr != nil {
 				// In caso di errore durante il rollback, registriamo un errore
-				fmt.Println("Failed to rollback transaction:", rollbackErr)
+				log.Println("Failed to rollback transaction:", rollbackErr)
 			}
 		}
 	}()

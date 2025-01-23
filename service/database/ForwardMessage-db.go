@@ -56,7 +56,7 @@ func (db *appdbimpl) ForwardMessage(userId string, messageId string, toConversat
 			break
 		}
 		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-			messageId = uuid.New().String()
+			NewMessageId = uuid.New().String()
 		} else {
 			return 500, nil, err
 		}

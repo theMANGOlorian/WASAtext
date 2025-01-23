@@ -12,6 +12,8 @@ import (
 
 func (rt *_router) sendImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	const imageType = "image/png"
+
 	authHeader := r.Header.Get("Authorization")
 	auth, err := utils.CheckAuthorizationField(authHeader)
 	if err != nil {
@@ -27,7 +29,7 @@ func (rt *_router) sendImage(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	if r.ContentLength == 0 || r.Header.Get("Content-Type") != "image/png" {
+	if r.ContentLength == 0 || r.Header.Get("Content-Type") != imageType {
 		ctx.Logger.Error("Error: Content-Type not supported")
 		http.Error(w, "Content-Type not valid", http.StatusBadRequest)
 		return

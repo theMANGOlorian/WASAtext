@@ -33,7 +33,7 @@ func (rt *_router) getPhoto(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 
-	if allowed == false {
+	if !allowed {
 		ctx.Logger.Error("operation forbidden")
 		http.Error(w, "cannot access to this data", http.StatusForbidden)
 		return

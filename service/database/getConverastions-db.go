@@ -99,13 +99,15 @@ func (db *appdbimpl) GetConversations(userId string, r *utils.GetConversationsRe
 			messageType = lastMessageType.String
 		}
 
-		if messageType == "text" {
+		switch messageType {
+		case "text":
 			conv.LastMessagePreview = lastMessageText.String
-		} else if messageType == "photo" {
+		case "photo":
 			conv.LastMessagePreview = "📸"
-		} else {
+		default:
 			conv.LastMessagePreview = ""
 		}
+		
 		// append conversation
 		conversations = append(conversations, conv)
 

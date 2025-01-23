@@ -25,7 +25,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		return
 	}
 
-	id, photoCode , err := rt.db.DoLogin(doLoginRequestBody.Username)
+	id, photoCode, err := rt.db.DoLogin(doLoginRequestBody.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		ctx.Logger.WithError(err).Error("Error: an error occurred during database operations")

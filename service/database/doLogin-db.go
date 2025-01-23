@@ -22,7 +22,7 @@ func (db *appdbimpl) DoLogin(username string) (string, string, error) {
 		}
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		return "","", fmt.Errorf("error while checking username: %w", err)
+		return "", "", fmt.Errorf("error while checking username: %w", err)
 	}
 
 	// User not found, it will created
@@ -36,8 +36,5 @@ func (db *appdbimpl) DoLogin(username string) (string, string, error) {
 			return newId, "", nil
 		}
 	}
-
-
-
 
 }

@@ -54,16 +54,18 @@ func (db *appdbimpl) AddToGroup(username string, groupId string) (int, error) {
 		return 500, err
 	}
 	err = db.c.QueryRow(query3, friendId, groupId).Scan(&exists)
-	if errors.Is(err, sql.ErrNoRows) {
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
 		_, err = db.c.Exec(query4, friendId, groupId)
 		if err != nil {
 			return 500, err
 		}
 		return 201, nil
-	} else if err == nil {
+	case err == nil:
 		return 409, fmt.Errorf("friend already a member")
-	} else {
+	default:
 		return 500, err
 	}
+	
 
 }
