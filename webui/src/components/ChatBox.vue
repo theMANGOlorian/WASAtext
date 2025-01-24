@@ -23,6 +23,7 @@ export default {
             highlightedMessageId: null,
             checkIcon,
             doubleCheckIcon,
+            isForwarding: false,
         };
     },
     mounted() {
@@ -104,7 +105,7 @@ export default {
         },
 
         async markAsRead() {
-            console.log(this.auth);
+
             try {
                 // Invia una richiesta PUT per ogni messaggio con status diverso da 'read'
                 const response = await this.$axios.put(`/conversations/${this.conversation.conversationId}/read`, 
@@ -261,11 +262,16 @@ export default {
                 this.replyTo = this.selectedMessage
             } else if (option === 'Forward') {
                 console.log('Inoltra il messaggio.');
+                this.showUserListBox();
             } else if (option === 'React') {
                 this.showEmojiMenu();
             } else if (option === 'Unreact') {
                 this.removeReaction();
             }
+        },
+
+        showUserListBox() {
+            this.isForwarding = true;
         },
 
         showEmojiMenu() {
@@ -394,6 +400,7 @@ export default {
         <div v-if="conversation">
             <ChatHeader :conversation="conversation" v-on:leftGroup="removeSelectedConversation"/>    
         </div>
+        <UserListBox v-if="isForwarding" :messageId="this.selectedMessage.messageId" v-on:close="isForwarding = false" />
         <div v-if="!conversation" class="no-conversation">
             <p>Select a conversation and start chatting. Your friends are waiting you!</p>
         </div>
