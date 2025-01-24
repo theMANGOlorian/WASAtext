@@ -24,6 +24,10 @@ export default {
             checkIcon,
             doubleCheckIcon,
             isForwarding: false,
+            lastConversation: null, // Usata per fare lo scrollToBottom quando apri una chat "nuova"
+            popupVisible: false, // popup comment
+            popupContent: '', // popup comment
+            popupStyle: {}, //popup comment (style)
         };
     },
     mounted() {
@@ -32,7 +36,6 @@ export default {
             this.startPolling();
         }
         document.addEventListener('click', this.handleClickOutside);
-
     },
 
     watch: {
@@ -98,6 +101,10 @@ export default {
                 }
 
                 this.markAsRead();
+                if (this.lastConversation !== this.conversation) {
+                    this.scrollToBottom();
+                    this.lastConversation = this.conversation;
+                }
 
             } catch (error) {
                 console.error('Errore nel caricamento dei messaggi:', error.message);
@@ -134,10 +141,14 @@ export default {
 
         computeMessagesHash(messages) {
             return messages.map(msg => {
-                const reactionsHash = msg.reactions ? msg.reactions.map(reaction => `${reaction.emoji}-${reaction.userId}`).join(',') : '';
-                return `${msg.messageId}-${msg.text || ''}-${reactionsHash}`;
+                const reactionsHash = msg.reactions 
+                    ? msg.reactions.map(reaction => `${reaction.emoji}-${reaction.userId}`).join(',') 
+                    : '';
+                const status = msg.status || 'none'; // Usa lo stato o 'none' come valore di default
+                return `${msg.messageId}-${status}-${reactionsHash}`;
             }).join('|');
         },
+
 
 
         async sendMessage() {
@@ -194,7 +205,7 @@ export default {
         },
 
         async scrollToBottom() {
-            console.log("ScrollToBottom()");
+            console.log("ScrollToBottom");
             this.$nextTick(() => {
                 if (this.$refs.messageList) {
                     this.$refs.messageList.scrollTop = this.$refs.messageList.scrollHeight;
@@ -389,7 +400,21 @@ export default {
             if (status === 'read'){
                 return this.doubleCheckIcon
             }
-        }
+        },
+
+        showPopup(username, event) {
+            this.popupContent = username;
+            this.popupStyle = {
+                top: `${event.clientY + 10}px`,
+                left: `${event.clientX + 10}px`,
+            };
+            this.popupVisible = true;
+        },
+        // Nasconde il popup
+        hidePopup() {
+            this.popupVisible = false;
+            this.popupContent = '';
+        },
     },
 };
 </script>
@@ -424,7 +449,10 @@ export default {
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
                         <img v-else-if="message.typeContent === 'photo'" :src="message.imageUrl" alt="Image" class="message-image" />
                         <div class="reactions-container">
-                            <span v-for="reaction in message.reactions" class="reactions">{{ reaction.emoji }}</span>
+                            <span v-for="reaction in message.reactions" @mouseover="showPopup(reaction.username, $event)" @mouseleave="hidePopup" class="reactions">{{ reaction.emoji }}</span>
+                        </div>
+                        <div v-if="popupVisible" :style="popupStyle" class="reaction-popup">
+                            {{ popupContent }}
                         </div>
                         <span class="message-time">{{ formatDate(message.timestamp) }} 
                             <img v-if="this.auth === message.senderId && message.status !== 'none'" :src="checkMarksViewer(message.status, message.senderId)" alt="Check" class="checkmark-icon" />
@@ -578,7 +606,7 @@ export default {
 
 .reactions-container {
     width: fit-content;
-    background-color: rgba(235, 235, 235, 0.692);
+    
     padding: 1px; 
     border-radius: 5px;
     margin-top: 10px;
@@ -587,6 +615,9 @@ export default {
 .reactions {
     margin: 0 1px;
     font-size: 1.3em;
+    background-color: rgba(235, 235, 235, 0.692);
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .reply-box {
@@ -621,4 +652,18 @@ export default {
     height: 20px;
     width: 20px;
 }
+
+.reaction-popup {
+    pointer-events: none;
+    font-size: 0.9em;
+    color: black;
+    background-color: #e7ffed;
+    transition: opacity 0.2s ease;
+    position: absolute;
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+
 </style>
