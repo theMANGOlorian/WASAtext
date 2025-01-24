@@ -154,14 +154,3 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 
 	return &response, 200, nil
 }
-
-func (db *appdbimpl) SetRecvMessage(userId string, conversationId string) error {
-
-	// questa query chiama un trigger
-	const query1 = `UPDATE members SET tsLastRecv = datetime('now','localtime') WHERE userId = ? AND conversationId = ?`
-	_, err := db.c.Exec(query1, userId, conversationId)
-	if err != nil {
-		return err
-	}
-	return nil
-}

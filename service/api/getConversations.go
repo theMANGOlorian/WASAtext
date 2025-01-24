@@ -43,4 +43,13 @@ func (rt *_router) getConversations(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, "Cannot encode JSON", http.StatusInternalServerError)
 	}
 
+	// Assumiamo che `responseBody` sia già stato popolato con i dati delle conversazioni
+	for _, conversation := range responseBody.Conversations {
+		err := rt.db.SetRecvMessage(auth, conversation.ConversationId)
+		if err != nil {
+			ctx.Logger.WithError(err).Errorf("Errore nell'aggiornare lo stato dei messaggi per la conversazione %s", conversation.ConversationId)
+			http.Error(w, "An error occurred", http.StatusInternalServerError)
+			return
+		}
+	}
 }

@@ -1,5 +1,7 @@
 
 <script>
+import checkIcon from '../assets/images/check.png';
+import doubleCheckIcon from '../assets/images/double-check.png'
 export default {
     props: {
         conversation: {
@@ -18,7 +20,9 @@ export default {
             emojiMenuVisible: false, // Per la seconda ContextMenu
             emojiList: ["😊", "😂", "😍", "😎", "😭"],
             replyTo: '',
-            highlightedMessageId: null
+            highlightedMessageId: null,
+            checkIcon,
+            doubleCheckIcon,
         };
     },
     mounted() {
@@ -27,6 +31,7 @@ export default {
             this.startPolling();
         }
         document.addEventListener('click', this.handleClickOutside);
+
     },
 
     watch: {
@@ -51,7 +56,6 @@ export default {
     },
     
     methods: {
-
         startPolling() {
             this.stopPolling(); // Evita duplicati
             this.pollingInterval = setInterval(() => {
@@ -91,8 +95,30 @@ export default {
                         this.updateMessages(newMessages);
                     }
                 }
+
+                this.markAsRead();
+
             } catch (error) {
                 console.error('Errore nel caricamento dei messaggi:', error.message);
+            }
+        },
+
+        async markAsRead() {
+            console.log(this.auth);
+            try {
+                // Invia una richiesta PUT per ogni messaggio con status diverso da 'read'
+                const response = await this.$axios.put(`/conversations/${this.conversation.conversationId}/read`, 
+                {}, // corpo della richiesta vuota, a quanto pare necessario altrimenti il server non riesce a leggere il token di autenticazione
+                {
+                    headers: {
+                        Authorization: `Bearer ${this.auth}`,
+                    },
+                });
+            } catch (error) {
+                console.error(
+                    `Errore durante l'aggiornamento dello stato dei messaggi`,
+                    error
+                );
             }
         },
 
@@ -346,6 +372,18 @@ export default {
         removeSelectedConversation() {
             this.$emit('rmSelectedConversation', null);
         },
+
+        checkMarksViewer(status, owner){
+            if ( owner !== this.auth || status === "none"){
+                return ""
+            }
+            if (status === 'recv'){
+                return this.checkIcon
+            }
+            if (status === 'read'){
+                return this.doubleCheckIcon
+            }
+        }
     },
 };
 </script>
@@ -381,7 +419,9 @@ export default {
                         <div class="reactions-container">
                             <span v-for="reaction in message.reactions" class="reactions">{{ reaction.emoji }}</span>
                         </div>
-                        <span class="message-time">{{ formatDate(message.timestamp) }}</span>
+                        <span class="message-time">{{ formatDate(message.timestamp) }} 
+                            <img v-if="this.auth === message.senderId && message.status !== 'none'" :src="checkMarksViewer(message.status, message.senderId)" alt="Check" class="checkmark-icon" />
+                        </span> 
                     </div>
                 </div>
             </div>
@@ -564,5 +604,14 @@ export default {
 
 .highlighted {
     background-color: #14e4ffb4 !important; 
+}
+
+.footer-message {
+    flex-direction: row;
+}
+
+.checkmark-icon {
+    height: 20px;
+    width: 20px;
 }
 </style>
