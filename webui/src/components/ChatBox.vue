@@ -204,14 +204,7 @@ export default {
             }
         },
 
-        async scrollToBottom() {
-            console.log("ScrollToBottom");
-            this.$nextTick(() => {
-                if (this.$refs.messageList) {
-                    this.$refs.messageList.scrollTop = this.$refs.messageList.scrollHeight;
-                }
-            });
-        },
+        
 
         formatDate(timestamp) {
             const options = {
@@ -351,29 +344,33 @@ export default {
             return message;
         },
 
-        scrollToMessage(targetMessageId) {
-            // Trova l'indice del messaggio nella lista
-            const messageIndex = this.messages.findIndex(
-                (message) => message.messageId === targetMessageId
-            );
 
-            if (messageIndex !== -1) {
-                // Recupera il riferimento del messaggio
-                const targetElement = this.$refs.messagesRefs[messageIndex];
+        async scrollToBottom() {
+            console.log("ScrollToBottom");
+            this.$nextTick(() => {
+                const container = this.$refs.messageList;
+                if (container) {
+                    container.scrollTop = container.scrollHeight
+                }
+            });
+        },
 
-                if (targetElement) {
-                    // Scorri fino al messaggio selezionato
-                    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                    // Applica la classe di evidenziazione temporanea
-                    this.highlightedMessageId = targetMessageId;
-
-                    // Rimuovi la classe dopo 1 secondo
+        async scrollToMessage(messageId) {
+            this.$nextTick(() => {
+                const targetMessage = this.$refs['message-' + messageId];
+                if (targetMessage && targetMessage[0]) { // Nel caso di ref array
+                    const container = this.$refs.messageList;
+                    const offsetTop = targetMessage[0].offsetTop;
+                    const margin = 100; // Margine sopra il messaggio
+                    container.scrollTop = Math.max(0, offsetTop - margin); // Evita valori negativi
+                    
+                    this.highlightedMessageId = messageId;
+                    console.log(targetMessage);
                     setTimeout(() => {
                         this.highlightedMessageId = null;
                     }, 1000);
                 }
-            }
+            });
         },
 
         getTextReplied(messageId) {
@@ -434,7 +431,7 @@ export default {
                 <div
                     v-for="message in messages"
                     :key="message.messageId"
-                    ref="messagesRefs"
+                    :ref="'message-' + message.messageId"
                     class="message-item"                >
                     <div :class="{
                             'sent': message.senderId === this.auth, 
@@ -460,19 +457,20 @@ export default {
                     </div>
                 </div>
             </div>
-            <div class="reply-box" v-if="this.replyTo !== null && this.replyTo !== ''"><span>Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
-            <footer class="message-input">
-                <input
-                    v-model="newMessage"
-                    type="text"
-                    placeholder="Scrivi un messaggio..."
-                    @keyup.enter="sendMessage"
-                />
-                <button class="send-message-button" @click="sendMessage">Send</button>
-                <button class="load-image-button" @click="onImageClick">+</button>
-                <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
-            </footer>
+            
         </div>
+        <div class="reply-box" v-if="this.replyTo !== null && this.replyTo !== ''"><span class="reply-text">Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
+        <footer class="message-input">
+            <input
+                v-model="newMessage"
+                type="text"
+                placeholder="Scrivi un messaggio..."
+                @keyup.enter="sendMessage"
+            />
+            <button class="send-message-button" @click="sendMessage">Send</button>
+            <button class="load-image-button" @click="onImageClick">+</button>
+            <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
+        </footer>
         <ContextMenu ref="contextMenu" @option-click="onContextMenuOptionClick" />
         <ContextMenu ref="emojiMenu" @option-click="onEmojiSelect" />
     </div>
@@ -626,6 +624,7 @@ export default {
     padding: 10px 100px 10px 20px; /*padding: top dx bottom sx */
     border-radius: 10px 10px 0 0;
 }
+
 
 .received-replied {
     background-color: rgba(178, 236, 150, 0.658);
