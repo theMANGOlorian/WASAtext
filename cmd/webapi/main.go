@@ -31,6 +31,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"path"
 	"github.com/ardanlabs/conf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -88,14 +89,14 @@ func run() error {
 	logger.Println("current working directory:", dir)
 
 	// Creating /tmp/WasaText/ directories
-	path := "/tmp/WasaText/images"
-	err = os.MkdirAll(path, os.ModePerm)
+	savingPath := "/tmp/WasaText/images"
+	err = os.MkdirAll(savingPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("could not create images directory: %w", err)
 	}
 
-	path = "/tmp/WasaText/database"
-	_ = os.MkdirAll(path, os.ModePerm)
+	savingPath = "/tmp/WasaText/database"
+	_ = os.MkdirAll(savingPath, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("could not create database directory: %w", err)
 	}
@@ -112,8 +113,8 @@ func run() error {
 		_ = dbconn.Close()
 	}()
 	// Path to the SQL file to create tables
-	sqlSchemaFilePath := "service/database/init-tables-db.sql"
-	sqlTriggersFilePath := "service/database/triggers.sql"
+	sqlSchemaFilePath := path.Join(dir, "service", "database", "init-tables-db.sql")
+	sqlTriggersFilePath := path.Join(dir,"service", "database", "triggers.sql")
 	// Initialize AppDatabase
 	db, err := database.New(dbconn, sqlSchemaFilePath, sqlTriggersFilePath)
 	if err != nil {

@@ -1,0 +1,24 @@
+# [Istruzioni]
+# Creazione : docker build -t wasatext-frontend:latest -f Dockerfile.frontend . 
+# Esecuzione : docker run -it --rm -p 8081:80  wasatext-frontend:latest
+
+# [FASE 1: NODE]
+
+# Setting di node:latest come immagine di base da cui partire
+FROM node:lts as frontend_compiler
+# Creazione della cartella src in cui lavorare
+WORKDIR /src/
+# Copia di tutti i files della directory webui all'interno della cartella webui (all'interno della directory di lavoro /src/)
+COPY ./webui ./webui
+# Cambio della directory di lavoro in "webui"
+WORKDIR /src/webui/
+# Esecuzione del comando per costruire l'app (anche installazione di yarn nel caso non esistesse)
+RUN yarn install
+RUN yarn build-prod
+
+# [FASE 2: NGINX]
+
+# Setting di nginx (versione stable) come immagine di base da cui partire
+FROM nginx:stable
+# Copia della cartella "dist" dal frontend compiler nel percorso per fare hosting dell'app
+COPY --from=frontend_compiler /src/webui/dist /usr/share/nginx/html

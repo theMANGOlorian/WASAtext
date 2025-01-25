@@ -1,0 +1,32 @@
+
+# [Istruzione d'uso]
+# Creazione : docker build -t wasatext-backend:latest -f Dockerfile.backend .
+# Esecuzione : docker run -it --rm -p 3000:3000 wasatext-backend:latest (-p fa un link dalla porta 3000 dell'host alla 3000 del container, esposta)
+
+
+# [FASE 1: GOLANG]
+
+# Setting di golang 1.20 come immagine di base da cui partire
+FROM golang:1.23 as backend_compiler
+# Creazione della cartella src su cui lavorare
+WORKDIR /src/
+# Copia dei files dell'intera directory WasaText all'interno della directory di lavoro (src)
+COPY . /src/
+# Esecuzione del comando "go build .. " per creare il file da eseguire
+RUN go build ./cmd/webapi
+
+# [FASE 2: DEBIAN]
+
+# Setting di debian (versione stable) come immagine di base da cui partire
+FROM debian:stable
+# Creazione della cartella backend_binary in cui lavorare
+WORKDIR /backend_binary/
+# Copia del file webapi dall'immagine "backend_compiler" nella directory di lavoro (backend_binary)
+COPY --from=backend_compiler /src/webapi .
+# Copia solo i file SQL richiesti
+COPY --from=backend_compiler /src/service/database/init-tables-db.sql ./service/database/
+COPY --from=backend_compiler /src/service/database/triggers.sql ./service/database/
+# Esposizione della porta 3000 (il container sarà in ascolto sulla porta a runtime)
+EXPOSE 3000
+# Setting istruzione di default quando viene eseguito il container da questa immagine
+CMD ["./webapi"]
