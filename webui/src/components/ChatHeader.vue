@@ -54,7 +54,7 @@
 import defaultProfileImage from '../assets/images/default-profile.jpg';
 export default {
     props: {
-        conversation: {
+        fatherConversation: {
             type: Object,
             required: true,
         },
@@ -67,8 +67,20 @@ export default {
             newGroupName: '',
             userList: [],
             showingUserList: false,
+            conversation: this.fatherConversation,
         };
     },
+
+    watch: {
+        fatherConversation: {
+            handler(newVal) {
+                // Quando la prop 'ObjConv' cambia, aggiorna 'conversation'
+                this.conversation = { ...newVal };
+            },
+            deep: true,
+        },
+    },
+
     computed: {
         conversationTitle() {
             return this.conversation ? this.conversation.conversationName : "Chat";

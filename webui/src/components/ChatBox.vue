@@ -1,7 +1,7 @@
 
 <script>
 import checkIcon from '../assets/images/check.png';
-import doubleCheckIcon from '../assets/images/double-check.png'
+import doubleCheckIcon from '../assets/images/double-check.png';
 export default {
     props: {
         conversation: {
@@ -168,9 +168,9 @@ export default {
                 });
                 this.messages.push(response.data);
                 this.newMessage = '';
-                this.scrollToBottom();
                 this.replyTo = null;
                 await this.fetchMessages(this.conversation.conversationId);
+                this.scrollToBottom();
             } catch (error) {
                 console.error('Errore durante l\'invio del messaggio:', error.data);
             }
@@ -348,10 +348,12 @@ export default {
         async scrollToBottom() {
             console.log("ScrollToBottom");
             this.$nextTick(() => {
-                const container = this.$refs.messageList;
-                if (container) {
-                    container.scrollTop = container.scrollHeight
-                }
+                setTimeout(() => {
+                    const container = this.$refs.messageList;
+                    if (container) {
+                        container.scrollTop = container.scrollHeight;
+                    }
+                }, 50);
             });
         },
 
@@ -361,7 +363,7 @@ export default {
                 if (targetMessage && targetMessage[0]) { // Nel caso di ref array
                     const container = this.$refs.messageList;
                     const offsetTop = targetMessage[0].offsetTop;
-                    const margin = 100; // Margine sopra il messaggio
+                    const margin = 120; // Margine sopra il messaggio
                     container.scrollTop = Math.max(0, offsetTop - margin); // Evita valori negativi
                     
                     this.highlightedMessageId = messageId;
@@ -420,7 +422,7 @@ export default {
 <template>
     <div class="chat-box">
         <div v-if="conversation">
-            <ChatHeader :conversation="conversation" v-on:leftGroup="removeSelectedConversation"/>    
+            <ChatHeader :fatherConversation="conversation" v-on:leftGroup="removeSelectedConversation"/>    
         </div>
         <UserListBox v-if="isForwarding" :messageId="this.selectedMessage.messageId" v-on:close="isForwarding = false" />
         <div v-if="!conversation" class="no-conversation">
@@ -446,7 +448,7 @@ export default {
                         <p v-if="message.typeContent === 'text'" class="message-text">{{ message.text }}</p>
                         <img v-else-if="message.typeContent === 'photo'" :src="message.imageUrl" alt="Image" class="message-image" />
                         <div class="reactions-container">
-                            <span v-for="reaction in message.reactions" @mouseover="showPopup(reaction.username, $event)" @mouseleave="hidePopup" class="reactions">{{ reaction.emoji }}</span>
+                            <span v-for="(reaction, index) in message.reactions" :key="index" @mouseover="showPopup(reaction.username, $event)" @mouseleave="hidePopup" class="reactions">{{ reaction.emoji }}</span>
                         </div>
                         <div v-if="popupVisible" :style="popupStyle" class="reaction-popup">
                             {{ popupContent }}
@@ -459,24 +461,32 @@ export default {
             </div>
             
         </div>
-        <div class="reply-box" v-if="this.replyTo !== null && this.replyTo !== ''"><span class="reply-text">Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
-        <footer class="message-input">
-            <input
-                v-model="newMessage"
-                type="text"
-                placeholder="Scrivi un messaggio..."
-                @keyup.enter="sendMessage"
-            />
-            <button class="send-message-button" @click="sendMessage">Send</button>
-            <button class="load-image-button" @click="onImageClick">+</button>
-            <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
-        </footer>
+        <div>
+            <div class="reply-box" v-if="this.replyTo !== null && this.replyTo !== ''"><span class="reply-text">Reply to: {{ this.truncateMessage(this.replyTo.text,100) }}</span></div>
+            <footer class="message-input">
+                <input
+                    v-model="newMessage"
+                    type="text"
+                    placeholder="Scrivi un messaggio..."
+                    @keyup.enter="sendMessage"
+                />
+                <button class="send-message-button" @click="sendMessage">Send</button>
+                <button class="load-image-button" @click="onImageClick"><img src="../assets/images/camera.png" alt="sendImage" class="send-image-icon" /></button>
+                <input type="file" ref="fileInput" style="display: none" @change="handleFileChange" accept="image/png"/>
+            </footer>
+        </div>
         <ContextMenu ref="contextMenu" @option-click="onContextMenuOptionClick" />
         <ContextMenu ref="emojiMenu" @option-click="onEmojiSelect" />
     </div>
 </template>
 
 <style scoped>
+
+.send-image-icon {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 5px;
+}
 
 .chat-box {
     display: flex;
@@ -507,6 +517,7 @@ export default {
     flex: 1;
     overflow-y: auto; 
     padding: 10px;
+    max-height: 100%;
 }
 
 .message-item {
@@ -526,7 +537,7 @@ export default {
 
 .sent {
     align-self: flex-end;
-    background-color: #46e631c7;
+    background-color: #9cff8fc7;
 }
 
 .received {
@@ -619,24 +630,33 @@ export default {
 }
 
 .reply-box {
+    position: absolute; 
+    bottom: 59px; /* sopra la barra di input */
+    left: 25%;
+    right: 0;
     background-color: rgba(206, 206, 206, 0.801);
-    width: fit-content;
-    padding: 10px 100px 10px 20px; /*padding: top dx bottom sx */
+    margin: 0;
+    padding: 10px 20px;
     border-radius: 10px 10px 0 0;
+    z-index: 10;
+    
 }
-
 
 .received-replied {
     background-color: rgba(178, 236, 150, 0.658);
     border-radius: 5px 5px 0 0;
-    text-align: center;
+    text-align: left;
     cursor: pointer;
+    border-left: 5px solid green;
+    padding-left: 5px;
 }
 .sent-replied {
     background-color: rgba(255, 255, 255, 0.658);
     border-radius: 5px 5px 0 0;
-    text-align: center;
+    text-align: left;
     cursor: pointer;
+    border-left: 5px solid green;
+    padding-left: 5px;
 }
 
 .highlighted {
@@ -648,8 +668,8 @@ export default {
 }
 
 .checkmark-icon {
-    height: 20px;
-    width: 20px;
+    height: 30px;
+    width: 30px;
 }
 
 .reaction-popup {

@@ -66,6 +66,5 @@ func (db *appdbimpl) AddToGroup(username string, groupId string) (int, error) {
 	default:
 		return 500, err
 	}
-	
 
 }

@@ -8,7 +8,7 @@
             <input class="input-text" type="text" placeholder="Enter your username" v-model="Username" />
         </div>
         <div class="button-box">
-            <button id="submit"class="submit" @click="LoginButtonPressed" :disabled="!validateUsername()" :style="{backgroundColor: validateUsername() ? 'rgb(37, 145, 4)' : 'rgba(37, 145, 4,0.5)'}">Login</button>
+            <button id="submit" class="submit" @click="LoginButtonPressed" :disabled="!validateUsername()" :style="{backgroundColor: validateUsername() ? 'rgb(37, 145, 4)' : 'rgba(37, 145, 4,0.5)'}">Login</button>
         </div>
         <ErrorBox v-if="ErrorMessage" :msg="ErrorMessage"></ErrorBox>
     </center>

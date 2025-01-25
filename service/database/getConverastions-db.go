@@ -107,7 +107,7 @@ func (db *appdbimpl) GetConversations(userId string, r *utils.GetConversationsRe
 		default:
 			conv.LastMessagePreview = ""
 		}
-		
+
 		// append conversation
 		conversations = append(conversations, conv)
 
