@@ -31,7 +31,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"path"
 	"github.com/ardanlabs/conf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
@@ -39,6 +38,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 )
 
@@ -114,7 +114,7 @@ func run() error {
 	}()
 	// Path to the SQL file to create tables
 	sqlSchemaFilePath := path.Join(dir, "service", "database", "init-tables-db.sql")
-	sqlTriggersFilePath := path.Join(dir,"service", "database", "triggers.sql")
+	sqlTriggersFilePath := path.Join(dir, "service", "database", "triggers.sql")
 	// Initialize AppDatabase
 	db, err := database.New(dbconn, sqlSchemaFilePath, sqlTriggersFilePath)
 	if err != nil {

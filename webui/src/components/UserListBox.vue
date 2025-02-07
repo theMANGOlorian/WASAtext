@@ -3,19 +3,13 @@
         <div class="user-list">
             <h2>Inoltra a ...</h2>
             <ul>
-                <!-- Itera sulle conversazioni -->
                 <li 
-                    v-for="conversation in conversationsList" 
-                    :key="conversation.conversationId" 
-                    v-on:click="onUserClick(conversation.conversationId)"
+                    v-for="user in usersList" 
+                    :key="user.username"  
+                    v-on:click="onUserClick(user)" 
                 >
                     <div class="contact-item">
-                        <img 
-                            :src="conversation.photoURL" 
-                            alt="Foto Profilo" 
-                            class="contact-photo"
-                        />
-                        <span class="contact-name">{{ conversation.conversationName }}</span>
+                        <span class="contact-name">{{ user.username }}</span>
                     </div>
                 </li>
             </ul>
@@ -42,6 +36,7 @@ export default {
             conversationsList: [],
             conversationSelected: '',
             defaultProfilePicture: defaultPicture,
+            usersList: [],
         };
     },
 
@@ -49,9 +44,39 @@ export default {
     beforeMount() {
         this.auth = sessionStorage.getItem('Auth');
         this.fetchConversationsList()
+        this.fetchUsersList();
     },
 
     methods: {
+        async fetchUsersList() {
+            try {
+                const response = await this.$axios.get(`/users`, {
+                    headers: { Authorization: `Bearer ${this.auth}` },
+                });
+                this.usersList = response.data.users?.map(username => ({
+                    username,
+                    photoURL: this.defaultProfilePicture 
+                })) || [];
+            } catch (error) {
+                console.error("Error fetching users:", error.message);
+            }
+        },
+        
+        async createConversation(username) {
+            try {
+              const response = await this.$axios.post(`/users/${sessionStorage.getItem('Auth')}/conversations`, 
+              { 
+                name: username,
+                typeConversation: "private",
+              },
+              {
+                headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}`, },
+              });
+              return response.data.identifier;
+            } catch (error) {
+                console.error("Error starting a new conversation while forwaring: ", error.message);
+            }
+        },
 
         async fetchConversationsList() {
 
@@ -118,10 +143,22 @@ export default {
             this.$emit('close'); // chiude la lista
         },
 
-        onUserClick(conversationId) {
-            this.forwardMessage(conversationId);
-            this.close(); 
-        }
+        async onUserClick(user) {
+            const username = user.username;
+            // Verifica se l'utente è già presente nelle conversazioni
+            const existingConversation = this.conversationsList.find(conversation => conversation.conversationName === username);
+
+            if (existingConversation) {
+                // Se l'utente è già nelle conversazioni, forwarda il messaggio
+                this.forwardMessage(existingConversation.conversationId);
+            } else {
+                // Se l'utente non è nelle conversazioni, crea una nuova conversazione
+                const conversationId = await this.createConversation(username);
+                // Dopo aver creato la conversazione, inoltra il messaggio alla nuova conversazione
+                this.forwardMessage(conversationId);
+            }
+            this.close(); // Chiudi la lista dopo l'azione
+        },
     }
 };
 </script>
@@ -181,7 +218,7 @@ export default {
     align-items: center;
     padding: 10px;
 }
-
+/*
 .contact-photo {
     width: 40px;
     height: 40px;
@@ -190,6 +227,7 @@ export default {
     object-fit: cover;
     background: #ddd;
 }
+*/
 
 .contact-name {
     font-size: 1rem;
