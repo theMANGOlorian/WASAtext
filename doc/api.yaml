@@ -148,6 +148,7 @@ paths:
                 type: object
                 properties:
                   imageCode:
+                    description: unique code image
                     type: string
                     minLength: 27
                     maxLength: 27
@@ -216,6 +217,7 @@ paths:
                 name:
                   $ref: "#/components/schemas/Name"
                 typeConversation:
+                  description: type of conversation, it could be private or group
                   type: string
                   enum: [private,group]
               required:
@@ -310,6 +312,7 @@ paths:
                 type: object
                 properties:
                   messages:
+                    description: array of messages with detail and info
                     type: array
                     items:
                       $ref: "#/components/schemas/MessageDetail"
@@ -489,6 +492,7 @@ paths:
           content:
             application/json:
               schema:
+                description: response with userId of the member 
                 properties:
                   userId:
                     $ref: "#/components/schemas/Identifier"
@@ -555,6 +559,7 @@ paths:
           content:
             application/json:
               schema:
+                description: return name of the group
                 properties:
                   groupName:
                     $ref: "#/components/schemas/Name"
@@ -599,6 +604,7 @@ paths:
                 type: object
                 properties:
                   imageCode:
+                    description: unique code image
                     type: string
                     minLength: 27
                     maxLength: 27
@@ -618,14 +624,15 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /messages/{messageId}/comment:
+    parameters:
+      - $ref: "#/components/parameters/messageId"
     put:
       tags:
         - Comment
       summary: add a reaction to a message
       description: add a reaction to a message of a coversation, you can choose between 5 emoji
       operationId: commentMessage
-      parameters:
-        - $ref: "#/components/parameters/messageId"
+      
       requestBody:
         required: true
         content:
@@ -647,6 +654,7 @@ paths:
           content:
             application/json:
               schema:
+                description: return identifier of the message
                 properties:
                   messageId:
                     $ref: "#/components/schemas/Identifier"
@@ -666,8 +674,6 @@ paths:
       summary: remove your reaction to a message
       description: remove a reaction to a message of a coversation
       operationId: uncommentMessage
-      parameters:
-        - $ref: "#/components/parameters/messageId"
       responses:
         "204":
           description: reaction removed successfully
@@ -695,6 +701,7 @@ paths:
           content:
             application/json:
               schema:
+                description: return identifier of message
                 properties:
                   messageId:
                     $ref: "#/components/schemas/Identifier"
@@ -722,10 +729,14 @@ paths:
           content:
             application/json:
               schema:
+                description: return list of users
                 type: object
                 properties:
                   users:
+                    description: array of users, all wasatext users (excluding yourself)
                     type: array
+                    maxItems: 250
+                    minItems: 0
                     items:
                       $ref: "#/components/schemas/Name"
                 required:
@@ -780,8 +791,8 @@ components:
       description: "A unique identifier for the user, in the specified format."
       type: string
       pattern: "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-      minLength: 15
-      maxLength: 15
+      minLength: 36
+      maxLength: 36
       example: "123e4567-e89b-12d3-a456-426614174000"
     Image:
       title: Image
@@ -820,7 +831,7 @@ components:
           type: string
           format: date-time
           example: "2024-12-23T09:00:00Z"
-          pattern: '^\d{4}-\d{2}-\d{2}T-\d{2}:\d{2}:\d{2}Z$'
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$'
           minLength: 20
           maxLength: 20
         lastMessagePreview:
@@ -832,7 +843,7 @@ components:
         - conversationId
         - conversationType
         - conversationName
-        - photoProfileId
+        - photoProfileCode
         - lastMessageTimeStamp
         - lastMessagePreview
     Text:
@@ -906,7 +917,7 @@ components:
         - senderId
         - username
         - text
-        - date
+        - timestamp
         - status
         - typeContent
         - reactions
