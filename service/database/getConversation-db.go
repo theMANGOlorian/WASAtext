@@ -14,7 +14,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 	const query2 = `SELECT 1 FROM conversations WHERE id = ? LIMIT 1`
 	const query3 = `SELECT 1 FROM members WHERE userId = ? AND conversationId = ? LIMIT 1`
 	const query4 = `
-					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
+					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp, m.forwarded
 					FROM messages m
 					JOIN users u ON u.id = m.sender
 					JOIN members mb ON mb.conversationId = m.conversation
@@ -26,7 +26,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 					LIMIT ?`
 
 	const query5 = `
-					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp
+					SELECT m.id, m.sender, u.username, m.type, m.text, m.photo, m.reply, m.status, timestamp, m.forwarded
 					FROM messages m
 					JOIN users u ON u.id = m.sender
 					JOIN members mb ON mb.conversationId = m.conversation
@@ -99,7 +99,7 @@ func (db *appdbimpl) GetConversation(userId string, conversationId string, limit
 		var image sql.NullString
 		var replyTo sql.NullString
 		var msg utils.Message
-		if err := rows.Scan(&msg.MessageId, &msg.SenderId, &msg.Username, &msg.TypeContent, &text, &image, &replyTo, &msg.Status, &msg.Timestamp); err != nil {
+		if err := rows.Scan(&msg.MessageId, &msg.SenderId, &msg.Username, &msg.TypeContent, &text, &image, &replyTo, &msg.Status, &msg.Timestamp, &msg.Forwarded); err != nil {
 			return nil, 500, err
 		}
 		if text.Valid {

@@ -38,11 +38,13 @@ CREATE TABLE IF NOT EXISTS messages (
     photo VARCHAR(27),
     conversation VARCHAR(36) NOT NULL,
     reply VARCHAR(36),
+    forwarded INTEGER DEFAULT 0 NOT NULL,
     status VARCHAR(4) DEFAULT 'none' NOT NULL,
     timestamp TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (conversation) REFERENCES conversations(id),
     FOREIGN KEY (reply) REFERENCES messages(id),
     CHECK ( status IN ('read','recv','none') ),
+    CHECK (forwarded IN (0,1)),
     CHECK ( type IN ('photo','text') ),
     CHECK ( (type = 'text' AND text IS NOT NULL AND photo IS NULL) OR 
         ( type = 'photo' AND photo IS NOT NULL AND text IS NULL))

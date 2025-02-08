@@ -891,6 +891,10 @@ components:
           description: content type, it can be a phot or a text
           type: string
           enum: [text,photo]
+        forwarded:
+          description: zero not forwarded, one forwarded
+          type: integer
+          enum: [0,1]
         reactions:
           description: array of reactions (emoji)
           type: array
@@ -920,6 +924,7 @@ components:
         - timestamp
         - status
         - typeContent
+        - forwarded
         - reactions
 
     NewTextMessage:

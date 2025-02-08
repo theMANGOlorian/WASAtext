@@ -265,7 +265,6 @@ export default {
             } else if (option === 'Reply') {
                 this.replyTo = this.selectedMessage
             } else if (option === 'Forward') {
-                console.log('Inoltra il messaggio.');
                 this.showUserListBox();
             } else if (option === 'React') {
                 this.showEmojiMenu();
@@ -440,6 +439,7 @@ export default {
                             'received': message.senderId !== this.auth, 
                             'highlighted': highlightedMessageId === message.messageId
                         }" @contextmenu="onMessageClick($event, message)">
+                        <p v-if="message.forwarded === 1" class="forwarded">forwarded</p>
                         <p v-if="message.replyTo != ''" @click="scrollToMessage(message.replyTo)" :class="{
                             'sent-replied': message.senderId === this.auth,
                             'received-replied': message.senderId !== this.auth
@@ -684,5 +684,8 @@ export default {
     z-index: 1000;
 }
 
-
+.forwarded {
+    color: grey;
+    font-size: 0.9em;
+}
 </style>

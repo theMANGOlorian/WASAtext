@@ -94,6 +94,7 @@ type SendMessageResponseBody struct {
 	Status      string      `json:"status"`
 	TypeContent string      `json:"typeContent"`
 	Reactions   []Reactions `json:"reactions"`
+	Forwarded   int         `json:"forwarded"`
 }
 
 type Message struct {
@@ -107,6 +108,7 @@ type Message struct {
 	Status      string      `json:"status"`
 	TypeContent string      `json:"typeContent"`
 	Reactions   []Reactions `json:"reactions"`
+	Forwarded   int         `json:"forwarded"`
 }
 
 type GetConversationResponseBody struct {

@@ -13,7 +13,7 @@ func (db *appdbimpl) ForwardMessage(userId string, messageId string, toConversat
 
 	const query1 = `SELECT EXISTS (SELECT 1 FROM members WHERE userId = ? AND conversationId = ?)`
 	const query2 = `SELECT type, text, photo FROM messages WHERE id = ?` // se non lo trova il messaggio non esiste
-	const query3 = `INSERT INTO messages (id, sender, type, text, photo, conversation) VALUES (?,?,?,?,?,?)`
+	const query3 = `INSERT INTO messages (id, sender, type, text, photo, conversation, forwarded) VALUES (?,?,?,?,?,?,1)`
 	const query4 = `SELECT u.username, m.timestamp FROM messages m JOIN users u ON m.sender = u.id WHERE m.id = ?`
 
 	var exists int
@@ -73,6 +73,7 @@ func (db *appdbimpl) ForwardMessage(userId string, messageId string, toConversat
 	response.Status = "none"
 	response.TypeContent = typeContent
 	response.Reactions = []utils.Reactions{}
+	response.Forwarded = 1
 
 	return 201, &response, nil
 }
