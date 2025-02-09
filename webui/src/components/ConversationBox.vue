@@ -62,10 +62,12 @@
       <ErrorBox v-if="ErrorMessage" :msg="ErrorMessage"></ErrorBox>
     </div>
   </div>
+  <AddMembersBox v-if="this.showAddMembersList" v-on:close="handleCloseAddMembersList" :groupId="lastGroupCreated"></AddMembersBox>
 </template>
 
 <script>
 import defaultProfileImage from '../assets/images/default-profile.jpg';
+import AddMembersBox from './AddMembersBox.vue';
 
 export default {
   data() {
@@ -78,6 +80,8 @@ export default {
           previousHash: null, // Salva l'hash della lista di conversazioni
           filteredUsers: [], // Lista utenti filtrata per il dropdown
           debounceTimeout: null, // Timeout per debouncing
+          showAddMembersList: false,
+          lastGroupCreated: "",
       };
   },
   mounted() {
@@ -112,6 +116,7 @@ export default {
               this.filteredUsers = allUsers; // Mostra tutti gli utenti
           } catch (error) {
               console.error("Error fetching users:", error.message);
+              alert("Error Message: " + error.message);
           }
       },
 
@@ -143,6 +148,7 @@ export default {
             );
           } catch (error) {
             console.error("Error fetching users:", error.message);
+            alert("Error Message: " + error.message);
           }
         }, 300); // Debounce di 300ms
       },
@@ -164,15 +170,26 @@ export default {
               {
                 headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}`, },
               });
+              if (this.conversationSelected === 'group'){
+                this.lastGroupCreated = response.data.identifier;
+                this.showAddMembersList = true;
+              }
               this.fetchConversations(); // Aggiorna le conversazioni dopo aver creato
               this.newConversationName = ''; // Pulisce il campo input
               this.filteredUsers = [];
+            
             } catch (error) {
               this.ErrorMessage = error.response ? `Error: ${error.response.status} - ${error.response.data}` : "Unexpected error: " + error.message;
+              alert("Error Message: " + error.message);
             }
           } else {
             this.ErrorMessage = "Conversation name cannot be empty.";
           }
+      },
+
+      async handleCloseAddMembersList() {
+        this.showAddMembersList = false;
+        this.lastGroupCreated = "";
       },
 
       async fetchConversations() {
@@ -195,6 +212,7 @@ export default {
               }
           } catch (error) {
               console.log("fetchConversation: " + error);
+              alert("Error Message: " + error.message);
           }
       },
 
@@ -213,6 +231,7 @@ export default {
               }
           } catch (error) {
               console.log("getPhotoConversation: " + error);
+              alert("Error Message: " + error.message);
           }
       },
 

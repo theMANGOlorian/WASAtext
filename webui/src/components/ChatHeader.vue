@@ -292,6 +292,7 @@ export default {
     background-color: #ffffff;
     color: rgb(0, 0, 0);
     position: relative;
+    cursor: pointer;
 }
 
 .chat-header h1 {

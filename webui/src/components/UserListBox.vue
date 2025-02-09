@@ -4,12 +4,12 @@
             <h2>Inoltra a ...</h2>
             <ul>
                 <li 
-                    v-for="user in usersList" 
-                    :key="user.username"  
-                    v-on:click="onUserClick(user)" 
+                    v-for="recipient in recipientsList" 
+                    :key="recipient.id"  
+                    v-on:click="onRecipientClick(recipient)"
                 >
                     <div class="contact-item">
-                        <span class="contact-name">{{ user.username }}</span>
+                        <span class="contact-name">{{ recipient.name }}</span>
                     </div>
                 </li>
             </ul>
@@ -17,12 +17,9 @@
     </div>
 </template>
 
-
-
 <script>
 import defaultPicture from '../assets/images/default-profile.jpg';
 export default {
-
     props: {
         messageId: {
             type: String,
@@ -34,17 +31,17 @@ export default {
         return {
             auth: '',
             conversationsList: [],
-            conversationSelected: '',
-            defaultProfilePicture: defaultPicture,
             usersList: [],
+            recipientsList: [], // Unisce utenti e gruppi
+            defaultProfilePicture: defaultPicture,
         };
     },
 
-
-    beforeMount() {
+    async beforeMount() {
         this.auth = sessionStorage.getItem('Auth');
-        this.fetchConversationsList()
-        this.fetchUsersList();
+        await this.fetchConversationsList();
+        await this.fetchUsersList();
+        this.combineRecipients();
     },
 
     methods: {
@@ -59,106 +56,92 @@ export default {
                 })) || [];
             } catch (error) {
                 console.error("Error fetching users:", error.message);
-            }
-        },
-        
-        async createConversation(username) {
-            try {
-              const response = await this.$axios.post(`/users/${sessionStorage.getItem('Auth')}/conversations`, 
-              { 
-                name: username,
-                typeConversation: "private",
-              },
-              {
-                headers: { Authorization: `Bearer ${sessionStorage.getItem('Auth')}`, },
-              });
-              return response.data.identifier;
-            } catch (error) {
-                console.error("Error starting a new conversation while forwaring: ", error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
         async fetchConversationsList() {
-
             try {
                 const response = await this.$axios.get(`/users/${this.auth}/conversations`, {
                     headers: { Authorization: `Bearer ${this.auth}` },
                 });
                 this.conversationsList = response.data.conversations;
+            } catch (error) {
+                console.error("Error fetching conversations:", error.message);
+                alert("Error Message: " + error.message);
+            }
+        },
 
-                this.conversationsList = await Promise.all(
-                    response.data.conversations.map(async (conversation) => {
-                        const photoURL = await this.getProfilePicture(conversation.photoProfileCode);
-                        return {
-                            ...conversation,
-                            photoURL: photoURL || this.defaultProfilePicture, // URL immagine o default
-                        };
-                    })
-                );
+        combineRecipients() {
+            // Creiamo un Set con i nomi delle conversazioni esistenti
+            const existingConversationNames = new Set(this.conversationsList.map(convo => convo.conversationName));
 
-            } 
-            catch (error) {
-                console.error("Error fetching users:", error.message);
+            this.recipientsList = [
+                // Aggiungiamo i gruppi dalla conversationsList
+                ...this.conversationsList.map(conversation => ({
+                    type: 'group',
+                    name: conversation.conversationName,
+                    id: conversation.conversationId,
+                })),
+                
+                // Aggiungiamo solo gli utenti che NON hanno già una conversazione
+                ...this.usersList
+                    .filter(user => !existingConversationNames.has(user.username))
+                    .map(user => ({
+                        type: 'private',
+                        name: user.username,
+                        id: user.username,
+                    }))
+            ];
+        },
+
+
+        async createConversation(username) {
+            try {
+                const response = await this.$axios.post(`/users/${this.auth}/conversations`, {
+                    name: username,
+                    typeConversation: "private",
+                }, {
+                    headers: { Authorization: `Bearer ${this.auth}` },
+                });
+                return response.data.identifier;
+            } catch (error) {
+                console.error("Error creating conversation:", error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
         async forwardMessage(conversationId) {
             try {
-                const response = await this.$axios.post(`messages/${this.messageId}/forward`,
-                    {
-                        conversationId: conversationId,
-                    },
-                    { 
-                        headers: { Authorization: `Bearer ${this.auth}` },
-                    }
-                );
-            }
-            catch (error) {
-                console.error("Error Forward: ", error.message)
+                await this.$axios.post(`messages/${this.messageId}/forward`, {
+                    conversationId: conversationId,
+                }, {
+                    headers: { Authorization: `Bearer ${this.auth}` },
+                });
+            } catch (error) {
+                console.error("Error forwarding message:", error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
-        async getProfilePicture(photoCode) {
-
-            if (photoCode === ""){
-                return this.defaultProfilePicture;
+        async onRecipientClick(recipient) {
+            if (recipient.type === 'group') {
+                await this.forwardMessage(recipient.id);
+            } else {
+                const existingConversation = this.conversationsList.find(convo => convo.conversationName === recipient.name);
+                if (existingConversation) {
+                    await this.forwardMessage(existingConversation.conversationId);
+                } else {
+                    const conversationId = await this.createConversation(recipient.name);
+                    await this.forwardMessage(conversationId);
+                }
             }
-            try {
-                const response = await this.$axios.get(`images/${photoCode}/photo`,
-                    { 
-                        headers: { Authorization: `Bearer ${this.auth}` },
-                        responseType: 'blob',
-                    }
-                    
-                );
-                return URL.createObjectURL(response.data);
-            }
-            catch (error) {
-                console.error("Error nella richiesta per la foto", error.message);
-                return this.defaultProfilePicture;
-            }
+            this.close();
         },
 
         close() {
-            this.$emit('close'); // chiude la lista
-        },
-
-        async onUserClick(user) {
-            const username = user.username;
-            // Verifica se l'utente è già presente nelle conversazioni
-            const existingConversation = this.conversationsList.find(conversation => conversation.conversationName === username);
-
-            if (existingConversation) {
-                // Se l'utente è già nelle conversazioni, forwarda il messaggio
-                this.forwardMessage(existingConversation.conversationId);
-            } else {
-                // Se l'utente non è nelle conversazioni, crea una nuova conversazione
-                const conversationId = await this.createConversation(username);
-                // Dopo aver creato la conversazione, inoltra il messaggio alla nuova conversazione
-                this.forwardMessage(conversationId);
-            }
-            this.close(); // Chiudi la lista dopo l'azione
-        },
+            this.$emit('close');
+        }
     }
 };
 </script>
@@ -218,16 +201,6 @@ export default {
     align-items: center;
     padding: 10px;
 }
-/*
-.contact-photo {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 15px;
-    object-fit: cover;
-    background: #ddd;
-}
-*/
 
 .contact-name {
     font-size: 1rem;

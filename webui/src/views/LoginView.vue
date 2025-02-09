@@ -60,6 +60,7 @@ export default {
                     // Qualcosa è andato storto nella configurazione della richiesta
                     this.ErrorMessage = "Unexpected error: " + error.message;
                 }
+                alert("Error Message: " + error.message);
             }
         }
 

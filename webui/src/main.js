@@ -10,6 +10,7 @@ import ChatBox from './components/ChatBox.vue';
 import ContextMenu from './components/ContextMenu.vue'
 import ChatHeader from './components/ChatHeader.vue'
 import UserListBox from './components/UserListBox.vue'
+import AddMembersBox from './components/AddMembersBox.vue';
 
 import './assets/dashboard.css'
 import './assets/main.css'
@@ -24,5 +25,6 @@ app.component("ChatBox",ChatBox);
 app.component("ContextMenu", ContextMenu);
 app.component("ChatHeader", ChatHeader);
 app.component("UserListBox", UserListBox);
+app.component("AddMembersBox", AddMembersBox);
 app.use(router);
 app.mount('#app');

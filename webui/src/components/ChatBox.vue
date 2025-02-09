@@ -108,6 +108,7 @@ export default {
 
             } catch (error) {
                 console.error('Errore nel caricamento dei messaggi:', error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -123,10 +124,8 @@ export default {
                     },
                 });
             } catch (error) {
-                console.error(
-                    `Errore durante l'aggiornamento dello stato dei messaggi`,
-                    error
-                );
+                console.log(error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -173,6 +172,7 @@ export default {
                 this.scrollToBottom();
             } catch (error) {
                 console.error('Errore durante l\'invio del messaggio:', error.data);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -194,6 +194,7 @@ export default {
                 await this.fetchMessages(this.conversation.conversationId);
             } catch (error) {
                 console.error('Errore durante l\'invio della foto:', error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -230,6 +231,7 @@ export default {
                 message.imageUrl = imageUrl;
             } catch (error) {
                 console.error('Errore nel recupero dell\'immagine:', error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -302,6 +304,7 @@ export default {
                 await this.fetchMessages(this.conversation.conversationId);
             } catch (error) {
                 console.error('Errore durante l\'invio della reazione:', error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -316,6 +319,7 @@ export default {
                 await this.fetchMessages(this.conversation.conversationId);
             } catch (error) {
                 console.error('Errore durante la cancellazione della reazione', error.message);
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -330,6 +334,7 @@ export default {
                 await this.fetchMessages(this.conversation.conversationId);
             } catch (error) {
                 console.error('Errore durante la cancellazione del messaggio:', error.message);
+                alert("Error Message: " + error.message);
             }
         },
         

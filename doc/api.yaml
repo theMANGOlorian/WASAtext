@@ -62,8 +62,14 @@ paths:
                 properties:
                   identifier:
                     $ref: "#/components/schemas/Identifier"
+                  Username: 
+                    $ref: "#/components/schemas/Name"
+                  PhotoCode:
+                    $ref: "#/components/schemas/PhotoCode"
                 required:
                   - identifier
+                  - Username
+                  - PhotoCode
         "400":
           $ref: '#/components/responses/BadRequest'
         "500":
@@ -148,12 +154,7 @@ paths:
                 type: object
                 properties:
                   imageCode:
-                    description: unique code image
-                    type: string
-                    minLength: 27
-                    maxLength: 27
-                    pattern: "^[0-9a-zA-Z]*?"
-                    example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
+                    $ref: "#/components/schemas/PhotoCode"
                 required:
                   - imageCode
         "400":
@@ -318,9 +319,6 @@ paths:
                       $ref: "#/components/schemas/MessageDetail"
                     minItems: 0
                     maxItems: 250
-                  totalCount:
-                    type: integer
-                    description: Total number of messages
                   nextCursor:
                     $ref: "#/components/schemas/Identifier"
                 required:
@@ -482,10 +480,10 @@ paths:
               description: needed a userId to add a person in a group
               type: object
               properties:
-                userId:
-                  $ref: "#/components/schemas/Identifier"
+                username:
+                  $ref: "#/components/schemas/Name"
               required:
-                - userId
+                - username
       responses:
         "201":
           description: users added
@@ -494,10 +492,10 @@ paths:
               schema:
                 description: response with userId of the member 
                 properties:
-                  userId:
-                    $ref: "#/components/schemas/Identifier"
+                  username:
+                    $ref: "#/components/schemas/Name"
                 required:
-                  - userId
+                  - username
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -561,10 +559,10 @@ paths:
               schema:
                 description: return name of the group
                 properties:
-                  groupName:
+                  name:
                     $ref: "#/components/schemas/Name"
                 required:
-                  - groupName
+                  - name
         "400":
           $ref: '#/components/responses/BadRequest'
         "401":
@@ -604,12 +602,7 @@ paths:
                 type: object
                 properties:
                   imageCode:
-                    description: unique code image
-                    type: string
-                    minLength: 27
-                    maxLength: 27
-                    pattern: "^[0-9a-zA-Z]*?"
-                    example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
+                    $ref: "#/components/schemas/PhotoCode"
                 required:
                   - imageCode
         "400":
@@ -651,15 +644,6 @@ paths:
       responses:
         "200":
           description: message commented successfully
-          content:
-            application/json:
-              schema:
-                description: return identifier of the message
-                properties:
-                  messageId:
-                    $ref: "#/components/schemas/Identifier"
-                required:
-                  - messageId
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -698,15 +682,6 @@ paths:
       responses:
         "200":
           description: message status has been stored, return the message identifier
-          content:
-            application/json:
-              schema:
-                description: return identifier of message
-                properties:
-                  messageId:
-                    $ref: "#/components/schemas/Identifier"
-                required:
-                  - messageId
         "400":
           $ref: '#/components/responses/BadRequest'
         "403":
@@ -794,6 +769,14 @@ components:
       minLength: 36
       maxLength: 36
       example: "123e4567-e89b-12d3-a456-426614174000"
+    PhotoCode:
+      title: Image code
+      description: "photo code (unique)"
+      type: string
+      minLength: 27
+      maxLength: 27
+      pattern: "^[0-9a-zA-Z]*?"
+      example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
     Image:
       title: Image
       description: Image binary format as a string
@@ -820,12 +803,7 @@ components:
         conversationName:
           $ref: "#/components/schemas/Name"
         photoProfileCode:
-          description: "photo code (unique)"
-          type: string
-          minLength: 27
-          maxLength: 27
-          pattern: "^[0-9a-zA-Z]*?"
-          example: "1ThDPX91uDwB1yxw5jYRxUIVs1W"
+          $ref: "#/components/schemas/PhotoCode"
         lastMessageTimeStamp:
           description: timestamp of the last message of conversation
           type: string
@@ -912,8 +890,11 @@ components:
                   - "😍"
                   - "😎"
                   - "🥺"
-              userId:
+              username:
+                $ref: "#/components/schemas/Name"
+              owner:
                 $ref: "#/components/schemas/Identifier"
+              
           minItems: 0
           maxItems: 250
       required:
@@ -931,8 +912,6 @@ components:
       description: field of a text message
       type: object
       properties:
-        senderId:
-          $ref: "#/components/schemas/Identifier"
         bodyMessage:
           $ref: "#/components/schemas/Text"
         replyTo:

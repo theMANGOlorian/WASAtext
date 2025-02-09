@@ -59,3 +59,29 @@ If you want to launch the WebUI, open a new tab and launch:
 # (here you're inside the container)
 yarn run dev
 ```
+
+## How to build container images
+
+Backend
+
+```shell
+docker build -t wasatext-backend:latest -f Dockerfile.backend .
+```
+Frontend
+```shell
+docker build -t wasatext-frontend:latest -f Dockerfile.frontend .
+```
+
+## How to run container images
+
+Backend
+```shell
+docker run -it --rm -p 3000:3000 wasatext-backend:latest
+```
+Frontend
+```shell
+docker run -it --rm -p 8081:80 wasatext-frontend:latest
+```
+
+## N.B.
+The file wasatext.db is created in the tmp folder.

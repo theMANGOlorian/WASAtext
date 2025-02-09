@@ -36,6 +36,7 @@ export default {
                     // Qualcosa è andato storto nella configurazione della richiesta
                     this.ErrorMessage = "Unexpected error: " + error.message;
                 }
+                alert("Error Message: " + error.message);
             }
         },
 
@@ -81,6 +82,7 @@ export default {
                     // Qualcosa è andato storto nella configurazione della richiesta
                     this.ErrorMessage = "Unexpected error: " + error.message;
                 }
+                alert("Error Message: " + error.message);
             }
         },
         
@@ -108,6 +110,7 @@ export default {
                 this.isEditingName = false; // esci dalla modalità di editing
             } catch (error) {
                 this.ErrorMessage = error.response ? `Error: ${error.response.status} - ${error.response.data}` : "Unexpected error: " + error.message;
+                alert("Error Message: " + error.message);
             }
         },
 
