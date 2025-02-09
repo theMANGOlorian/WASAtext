@@ -323,7 +323,6 @@ paths:
                     $ref: "#/components/schemas/Identifier"
                 required:
                   - messages
-                  - totalCount
                   - nextCursor
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -642,7 +641,7 @@ paths:
               required:
                 - reaction
       responses:
-        "200":
+        "204":
           description: message commented successfully
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -680,7 +679,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/conversationId"
       responses:
-        "200":
+        "204":
           description: message status has been stored, return the message identifier
         "400":
           $ref: '#/components/responses/BadRequest'
@@ -727,7 +726,7 @@ components:
     photoId:
       description: identifier for a single photo as a integer
       schema:
-        $ref: "#/components/schemas/photoId"
+        $ref: "#/components/schemas/PhotoCode"
       name: photoId
       in: path
       required: true
@@ -784,10 +783,6 @@ components:
       format: binary
       minLength: 1
       maxLength: 20971520 # 20MB
-    photoId:
-      title: photo Identifier
-      description: photo id as integer, is unique
-      type: integer
     ConversationInfo:
       description: |
         list of conversation with other users or with groups, sorted in reverse chronological order.
@@ -917,7 +912,6 @@ components:
         replyTo:
           $ref: "#/components/schemas/Identifier"
       required:
-        - senderId
         - bodyMessage
         - replyTo
 
